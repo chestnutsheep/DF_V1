@@ -1,0 +1,59 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+	"@ramtinj95/opencode-tokenscope@latest",
+    	"octto",
+    	"@morphllm/opencode-morph-plugin@latest",
+    	"opencode-lcm@latest",
+   	    "opencode-browser@latest",
+    	"@tarquinen/opencode-dcp@latest",
+    	"superpowers@git+https://github.com/obra/superpowers.git"
+  ],
+  "mcp": {
+    "context7": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@upstash/context7-mcp"
+      ]
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "filesystem": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\scapegoat\\Desktop",
+        "G:\\PycharmProjects\\DeepFusion"
+      ],
+      "timeout": 60000
+    },
+    "Fetch": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "mcp-server-fetch"
+      ]
+    },
+    "time": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "mcp-server-time",
+        "--local-timezone=China/Shanghai"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}

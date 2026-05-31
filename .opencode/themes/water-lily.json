@@ -1,0 +1,225 @@
+{
+  "$schema": "https://opencode.ai/theme.json",
+  "defs": {
+    "monet_text_white": "#EDEDED",
+    "monet_text_cyan": "#AED4D4",
+    "monet_bg_deep_green": "#404950",
+    "monet_button_teal": "#6C9293",
+    "monet_bg_panel": "#3E4F55",
+    "monet_button_label": "#557076",
+    "monet_accent_pink": "#A18A9D",
+    "monet_border_gold": "#D2B67D",
+    "monet_accent_purple": "#827B98",
+    "monet_border_dark_gold": "#B5874D",
+    "monet_input_bg": "#C3C3A2",
+    "monet_accent_dark_purple": "#67658F",
+    "monet_accent_deep_purple": "#4C4073",
+    "monet_accent_dark_pink": "#8E6487",
+    "monet_accent_deep_pink": "#7D4073",
+    "monet_green_mint": "#B8E0D9",
+    "monet_green_normal": "#4C6B6E"
+  },
+  "theme": {
+    "primary": {
+      "dark": "monet_button_label",
+      "light": "monet_button_teal"
+    },
+    "secondary": {
+      "dark": "monet_button_teal",
+      "light": "monet_button_label"
+    },
+    "accent": {
+      "dark": "monet_accent_pink",
+      "light": "monet_accent_dark_pink"
+    },
+    "text": {
+      "dark": "monet_text_white",
+      "light": "monet_bg_deep_green"
+    },
+    "textMuted": {
+      "dark": "monet_button_teal",
+      "light": "monet_button_teal"
+    },
+    "background": {
+      "dark": "monet_bg_deep_green",
+      "light": "#F5F5F0"
+    },
+    "error": {
+      "dark": "monet_accent_deep_pink",
+      "light": "monet_accent_deep_pink"
+    },
+    "warning": {
+      "dark": "monet_border_dark_gold",
+      "light": "monet_border_gold"
+    },
+    "success": {
+      "dark": "monet_text_cyan",
+      "light": "monet_green_mint"
+    },
+    "info": {
+      "dark": "monet_accent_purple",
+      "light": "monet_accent_purple"
+    },
+    "backgroundPanel": {
+      "dark": "monet_bg_panel",
+      "light": "#E8E8E0"
+    },
+    "backgroundElement": {
+      "dark": "monet_input_bg",
+      "light": "#F0F0E6"
+    },
+    "border": {
+      "dark": "monet_border_gold",
+      "light": "monet_border_dark_gold"
+    },
+    "borderActive": {
+      "dark": "monet_border_dark_gold",
+      "light": "monet_border_gold"
+    },
+    "borderSubtle": {
+      "dark": "monet_button_label",
+      "light": "monet_button_teal"
+    },
+    "diffAdded": {
+      "dark": "monet_text_cyan",
+      "light": "monet_green_mint"
+    },
+    "diffRemoved": {
+      "dark": "monet_accent_deep_pink",
+      "light": "monet_accent_deep_pink"
+    },
+    "diffContext": {
+      "dark": "monet_button_teal",
+      "light": "monet_button_teal"
+    },
+    "diffHunkHeader": {
+      "dark": "monet_accent_purple",
+      "light": "monet_accent_purple"
+    },
+    "diffHighlightAdded": {
+      "dark": "monet_text_cyan",
+      "light": "monet_green_mint"
+    },
+    "diffHighlightRemoved": {
+      "dark": "monet_accent_deep_pink",
+      "light": "monet_accent_deep_pink"
+    },
+    "diffAddedBg": {
+      "dark": "monet_bg_panel",
+      "light": "#E8E8E0"
+    },
+    "diffRemovedBg": {
+      "dark": "monet_bg_panel",
+      "light": "#E8E8E0"
+    },
+    "diffContextBg": {
+      "dark": "monet_bg_panel",
+      "light": "#E8E8E0"
+    },
+    "diffLineNumber": {
+      "dark": "monet_button_teal",
+      "light": "monet_button_teal"
+    },
+    "diffAddedLineNumberBg": {
+      "dark": "monet_bg_panel",
+      "light": "#E8E8E0"
+    },
+    "diffRemovedLineNumberBg": {
+      "dark": "monet_bg_panel",
+      "light": "#E8E8E0"
+    },
+    // Markdown样式
+    "markdownText": {
+      "dark": "monet_text_white",
+      "light": "monet_bg_deep_green"
+    },
+    "markdownHeading": {
+      "dark": "monet_border_gold",
+      "light": "monet_border_dark_gold"
+    },
+    "markdownLink": {
+      "dark": "monet_accent_pink",
+      "light": "monet_accent_dark_pink"
+    },
+    "markdownLinkText": {
+      "dark": "monet_text_cyan",
+      "light": "monet_green_mint"
+    },
+    "markdownCode": {
+      "dark": "monet_input_bg",
+      "light": "monet_bg_deep_green"
+    },
+    "markdownBlockQuote": {
+      "dark": "monet_button_teal",
+      "light": "monet_button_teal"
+    },
+    "markdownEmph": {
+      "dark": "monet_accent_purple",
+      "light": "monet_accent_purple"
+    },
+    "markdownStrong": {
+      "dark": "monet_border_gold",
+      "light": "monet_border_dark_gold"
+    },
+    "markdownHorizontalRule": {
+      "dark": "monet_button_label",
+      "light": "monet_button_teal"
+    },
+    "markdownListItem": {
+      "dark": "monet_text_cyan",
+      "light": "monet_green_mint"
+    },
+    "markdownListEnumeration": {
+      "dark": "monet_border_gold",
+      "light": "monet_border_dark_gold"
+    },
+    "markdownImage": {
+      "dark": "monet_accent_purple",
+      "light": "monet_accent_purple"
+    },
+    "markdownImageText": {
+      "dark": "monet_button_teal",
+      "light": "monet_button_teal"
+    },
+    "markdownCodeBlock": {
+      "dark": "monet_text_white",
+      "light": "monet_bg_deep_green"
+    },
+    "syntaxComment": {
+      "dark": "monet_button_teal",
+      "light": "monet_button_teal"
+    },
+    "syntaxKeyword": {
+      "dark": "monet_accent_purple",
+      "light": "monet_accent_purple"
+    },
+    "syntaxFunction": {
+      "dark": "monet_accent_pink",
+      "light": "monet_accent_dark_pink"
+    },
+    "syntaxVariable": {
+      "dark": "monet_text_cyan",
+      "light": "monet_green_mint"
+    },
+    "syntaxString": {
+      "dark": "monet_input_bg",
+      "light": "monet_bg_deep_green"
+    },
+    "syntaxNumber": {
+      "dark": "monet_accent_dark_pink",
+      "light": "monet_accent_dark_pink"
+    },
+    "syntaxType": {
+      "dark": "monet_text_cyan",
+      "light": "monet_green_mint"
+    },
+    "syntaxOperator": {
+      "dark": "monet_accent_purple",
+      "light": "monet_accent_purple"
+    },
+    "syntaxPunctuation": {
+      "dark": "monet_text_white",
+      "light": "monet_bg_deep_green"
+    }
+  }
+}
