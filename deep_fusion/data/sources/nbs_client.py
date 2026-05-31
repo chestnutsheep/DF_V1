@@ -467,8 +467,14 @@ def _fetch_nbs_capacity_util() -> tuple[list[str], list[float]]:
 def _fetch_house_price_yoy() -> tuple[list[str], list[float]]:
     """70城新建商品住宅价格同比（库兹涅茨周期主判定信号）"""
     import os
-    old_proxy = os.environ.pop("HTTP_PROXY", None)
-    old_hproxy = os.environ.pop("HTTPS_PROXY", None)
+    old_http = os.environ.pop("HTTP_PROXY", None)
+    old_https = os.environ.pop("HTTPS_PROXY", None)
+    old_all = os.environ.pop("ALL_PROXY", None)
+    old_socks = os.environ.pop("SOCKS_PROXY", None)
+    _ = os.environ.pop("all_proxy", None)
+    _ = os.environ.pop("https_proxy", None)
+    _ = os.environ.pop("http_proxy", None)
+    _ = os.environ.pop("socks_proxy", None)
     try:
         import akshare as ak
         cities = [("北京","上海"), ("广州","深圳"), ("杭州","成都"), ("武汉","南京"), ("天津","重庆")]
@@ -494,10 +500,14 @@ def _fetch_house_price_yoy() -> tuple[list[str], list[float]]:
         logger.warning(f"70城房价获取失败: {e}")
         return [], []
     finally:
-        if old_proxy:
-            os.environ["HTTP_PROXY"] = old_proxy
-        if old_hproxy:
-            os.environ["HTTPS_PROXY"] = old_hproxy
+        if old_http:
+            os.environ["HTTP_PROXY"] = old_http
+        if old_https:
+            os.environ["HTTPS_PROXY"] = old_https
+        if old_all:
+            os.environ["ALL_PROXY"] = old_all
+        if old_socks:
+            os.environ["SOCKS_PROXY"] = old_socks
 
 
 # ═══════════════════════════════════════════════════════════════
