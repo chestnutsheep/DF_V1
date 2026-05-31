@@ -12,6 +12,7 @@ build/
 *.swo
 *~
 .env
+.idea/
 output/
 _cache/
 .lcm/
