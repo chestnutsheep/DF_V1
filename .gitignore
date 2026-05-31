@@ -14,6 +14,9 @@ build/
 .env
 output/
 _cache/
+.lcm/
+.data/
+*.db
 *.png
 *.pdf
 *.csv
