@@ -57,6 +57,39 @@ def fetch_fred(series_id: str) -> list[tuple[str, float]]:
         _LOGGER.warning("FRED fetch failed (%s): %s", series_id, e)
     return []
 
+def fetch_fred_long(series_ids: str | list[str], method: str = "mean") -> list:
+    """Fetch multiple FRED series and merge into one long annual history.
+
+    如果传多个 series_id，自动拼接到最长时间范围。
+    method: 'mean' → 多序列重叠期取平均, 'first' → 取第一个
+
+    Returns: list of (year: int, value: float)
+    """
+    if isinstance(series_ids, str):
+        series_ids = [series_ids]
+
+    all_pts: dict[int, list[float]] = {}
+    for sid in series_ids:
+        raw = fetch_fred(sid)
+        if not raw:
+            continue
+        annual = _fred_to_annual(raw)
+        for yr, val in annual:
+            all_pts.setdefault(yr, []).append(val)
+
+    if not all_pts:
+        return []
+
+    result = []
+    for yr in sorted(all_pts):
+        vals = all_pts[yr]
+        if method == "mean":
+            result.append((yr, round(sum(vals) / len(vals), 4)))
+        else:
+            result.append((yr, vals[0]))
+    return result
+
+
 def _fred_to_annual(series: list[tuple[str, float]]) -> list[tuple[int, float]]:
     by_year: dict[int, list[float]] = defaultdict(list)
     for date_str, val in series:

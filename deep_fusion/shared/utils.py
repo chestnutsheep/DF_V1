@@ -150,9 +150,13 @@ def compute_kondratiev() -> dict[str, Any]:
     from .spectral import cf_bandpass
 
     # 1. 获取全球数据
-    ppiaco = fetch_fred("PPIACO")  # PPI All Commodities, 1913~
-    gs10 = fetch_fred("GS10")      # 10-Year Treasury, 1953~
-    wbgdp = fetch_wb("NY.GDP.MKTP.KD.ZG", "1W")  # World GDP growth, 1961~
+    ppiaco = fetch_fred("PPIACO")  # PPI All Commodities, 1913~ (113yr)
+    gs10 = fetch_fred("GS10")      # 10-Year Treasury, 1953~ (73yr)
+    wbgdp = fetch_wb("NY.GDP.MKTP.KD.ZG", "1W")  # World GDP growth, 1961~ (65yr)
+    # 扩展长序列: CPI (1947~) + 工业产出 (1919~) + 实际 GNP (1929~)
+    cpi = fetch_fred("CPIAUCSL")   # CPI All Urban, 1947~ (79yr)
+    indpro = fetch_fred("INDPRO")  # Industrial Production, 1919~ (107yr)
+    gnp = fetch_fred("GNPCA")      # Real GNP, 1929~ (96yr)
 
     # 2. 转年度, 对齐年份
     raw: dict[str, list[tuple[int, float]]] = {}
@@ -162,6 +166,12 @@ def compute_kondratiev() -> dict[str, Any]:
         raw["gs10"] = _fred_to_annual(gs10)
     if len(wbgdp) > 10:
         raw["wbgdp"] = wbgdp
+    if len(cpi) > 20:
+        raw["cpi"] = _fred_to_annual(cpi)
+    if len(indpro) > 20:
+        raw["indpro"] = _fred_to_annual(indpro)
+    if len(gnp) > 10:
+        raw["gnpca"] = _fred_to_annual(gnp)
 
     if len(raw) < 2:
         return {"dominant_period": None, "phase": 0, "confidence": 0.0,
@@ -180,7 +190,7 @@ def compute_kondratiev() -> dict[str, Any]:
 
     # 4. 构建矩阵
     matrix_list = []
-    keys_ordered = ["ppiaco", "gs10", "wbgdp"]
+    keys_ordered = ["ppiaco", "gs10", "wbgdp", "cpi", "indpro", "gnpca"]
     available = []
     for key in keys_ordered:
         if key not in raw:
