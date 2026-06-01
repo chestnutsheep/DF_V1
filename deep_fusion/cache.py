@@ -97,7 +97,7 @@ from functools import partial
 import akshare as ak
 import pandas as pd
 
-_logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 _executor = ThreadPoolExecutor(max_workers=8)
 
