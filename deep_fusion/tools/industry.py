@@ -10,6 +10,7 @@ from ..data.sources import industry_ths as ths
 from ..data.sources import industry_cninfo as cninfo
 from ..data.sources import spot_prices as spot
 from ..data.sources import caixin_indices as caixin
+from ..data.sources import industry_collector as collector
 from ..data.sources import multi_factor as mf
 from ..data.sources import caixin_indices as caixin
 
@@ -92,6 +93,42 @@ def industry_capital_flow(
     if industry:
         flow = flow[flow["industry_name"].str.contains(industry, na=False)]
     return flow.head(limit).to_csv(index=False, float_format="%.2f")
+
+
+@mcp.tool(
+    name="industry_daily_collect",
+    description="批量采集同花顺行业日行情（OHLCV）写入本地 SQLite，约90行业×5年数据",
+)
+def industry_daily_collect(
+    start_date: str = "20200101",
+) -> str:
+    import time
+    t0 = time.time()
+    results = collector.collect_all_industry_daily(start_date)
+    elapsed = time.time() - t0
+    total = sum(results.values())
+    lines = [f"采集完成: {len(results)} 个行业, {total} 行, {elapsed:.0f}s"]
+    for name, rows in list(results.items())[:5]:
+        lines.append(f"  {name}: {rows} 行")
+    if len(results) > 5:
+        lines.append(f"  ... 还有 {len(results)-5} 个")
+    return "\n".join(lines)
+
+
+@mcp.tool(
+    name="industry_daily_query",
+    description="查询本地 SQLite 中的行业日行情",
+)
+def industry_daily_query(
+    industry: str = "",
+    start_date: str = "",
+    end_date: str = "",
+    limit: int = 20,
+) -> str:
+    df = db.get_daily(industry_code=industry or None, start_date=start_date or None, end_date=end_date or None, limit=limit)
+    if df is None or df.empty:
+        return "本地无缓存数据，请先用 industry_daily_collect 采集"
+    return df.tail(limit).to_csv(index=False, float_format="%.2f")
 
 
 @mcp.tool(
