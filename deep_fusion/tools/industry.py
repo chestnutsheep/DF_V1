@@ -1,4 +1,4 @@
-"""行业 MCP 工具 — 数据优先从本地 SQLite 读取，缓存过期再走 akshare。"""
+"""行业 MCP 工具 — 数据源: 同花顺(ths) + 巨潮(cninfo)，零东方财富依赖。"""
 from io import StringIO
 
 import pandas as pd
@@ -6,182 +6,141 @@ from pydantic import Field
 
 from ..server import mcp
 from ..shared import industry_db as db
-from ..shared.utils import ak_cache
-from ..cache import ak_cache as _ak_cache
-import akshare as ak
-
-
-def _try_cache(fn, *args, ttl=86400, **kwargs):
-    """带缓存的 akshare 调用，成功时写入本地 DB。"""
-    result = ak_cache(fn, *args, ttl=ttl, **kwargs)
-    if result is not None and not result.empty:
-        return result
-    return None
+from ..data.sources import industry_ths as ths
+from ..data.sources import industry_cninfo as cninfo
 
 
 @mcp.tool(
-    title="行业分类查询",
-    description="获取申万/东方财富等标准行业分类信息，优先从本地缓存读取",
+    name="industry_classify",
+    description="获取同花顺/巨潮行业分类列表",
 )
 def industry_classify(
-    分类标准: str = Field("申万", description="分类标准: 申万, 证监会, 东方财富"),
+    分类标准: str = Field("同花顺", description="同花顺 / 巨潮"),
 ) -> str:
-    source_map = {"申万": "ths", "东方财富": "ths", "证监会": "cninfo"}
-    source = source_map.get(分类标准, "ths")
-
-    # 优先本地
-    cached = db.get_classify(source)
+    # 优先本地 SQLite
+    cached = db.get_classify("ths")
     if cached is not None and not cached.empty:
         return cached.to_csv(index=False)
 
-    # 本地没有，走 akshare
-    fn = {"ths": ak.stock_board_industry_name_ths, "cninfo": ak.stock_industry_category_cninfo}.get(
-        source, ak.stock_board_industry_name_ths
-    )
-    df = _try_cache(fn, ttl=86400)
+    # 拉取同花顺（无需代理）
+    df = ths.get_industry_list()
     if df is not None and not df.empty:
-        # 转成标准列名后存库
-        rename = {}
-        for c in df.columns:
-            if "名称" in c or "板块" in c:
-                rename[c] = "industry_name"
-            elif "代码" in c:
-                rename[c] = "industry_code"
-        if "industry_name" in rename:
-            df_out = df.rename(columns=rename)
-            if "industry_name" in df_out.columns and "industry_code" in df_out.columns:
-                try:
-                    db.save_classify(df_out, source)
-                except Exception:
-                    pass
-            return df.to_csv(index=False)
+        try:
+            db.save_classify(df, "ths")
+        except Exception:
+            pass
         return df.to_csv(index=False)
-    return "暂无行业分类数据"
+
+    return "暂无行业数据"
 
 
 @mcp.tool(
-    title="行业行情与估值",
-    description="获取行业实时行情、历史K线、估值水平等综合行业市场数据，优先本地缓存",
+    name="industry_quotes",
+    description="获取行业历史行情（OHLCV）、估值水平、资金流向，优先本地缓存",
 )
 def industry_quotes(
-    industry: str = Field("", description="行业名称，如 银行。留空返回全行业实时行情"),
+    industry: str = Field("", description="行业名称，如 银行"),
     period: str = Field("daily", description="K线周期: daily/weekly/monthly"),
     limit: int = 30,
 ) -> str:
-    results = {}
+    results = []
 
-    # 估值（本地）
-    val = db.get_valuation()
+    # 行业指数历史行情（同花顺）
+    if industry:
+        df = ths.get_industry_index(industry, start="20200101")
+        if df is not None and not df.empty:
+            df_out = df.tail(limit).round(2)
+            results.append(f"=== {industry} 行业指数行情(同花顺) ===")
+            results.append(df_out.to_csv(index=False))
+
+    # 行业估值（巨潮）
+    val = cninfo.get_pe_ratio()
     if val is not None and not val.empty:
         if industry:
             val = val[val["industry_name"].str.contains(industry, na=False)]
-        results["行业估值水平(本地)"] = val.head(limit).to_csv(index=False, float_format="%.2f")
+        results.append("=== 行业市盈率(巨潮) ===")
+        results.append(val.head(limit).to_csv(index=False, float_format="%.2f"))
 
-    # 历史行情（本地）
-    if industry:
-        daily = db.get_daily(limit=limit)
-        if daily is not None and not daily.empty:
-            results[f"{industry}历史行情(本地)"] = daily.tail(limit).to_csv(index=False, float_format="%.2f")
-
-    # 资金流（本地）
-    flow = db.get_fund_flow(limit)
-    if flow is not None and not flow.empty:
-        results["行业资金流排行(本地)"] = flow.head(limit).to_csv(index=False, float_format="%.2f")
-
-    if results:
-        out = []
-        for title, data in results.items():
-            out.append(f"=== {title} ===")
-            out.append(data)
-            out.append("")
-        return "\n".join(out)
-
-    return "本地无缓存数据，请等代理恢复后采集"
-
-
-@mcp.tool(
-    title="行业资金流向",
-    description="获取行业实时资金流排行（优先本地缓存）",
-)
-def industry_capital_flow(
-    industry: str = Field("", description="行业名称，留空返回全行业排行"),
-    limit: int = 20,
-) -> str:
-    flow = db.get_fund_flow(limit)
+    # 资金流（同花顺）
+    flow = ths.get_fund_flow()
     if flow is not None and not flow.empty:
         if industry:
             flow = flow[flow["industry_name"].str.contains(industry, na=False)]
-        return flow.head(limit).to_csv(index=False, float_format="%.2f")
-    return "本地无缓存数据"
+        results.append("=== 行业资金流(同花顺) ===")
+        results.append(flow.head(limit).to_csv(index=False, float_format="%.2f"))
+
+    if not results:
+        return "数据暂不可用，请检查网络"
+    return "\n\n".join(results)
 
 
 @mcp.tool(
-    title="行业数据采集",
-    description="手动触发行业数据采集：分类、估值、资金流写入本地 SQLite",
+    name="industry_capital_flow",
+    description="行业资金流排行（同花顺）",
+)
+def industry_capital_flow(
+    industry: str = Field("", description="行业名称，留空返回全排行"),
+    limit: int = 20,
+) -> str:
+    flow = ths.get_fund_flow()
+    if flow is None or flow.empty:
+        return "资金流数据暂不可用"
+    if industry:
+        flow = flow[flow["industry_name"].str.contains(industry, na=False)]
+    return flow.head(limit).to_csv(index=False, float_format="%.2f")
+
+
+@mcp.tool(
+    name="industry_collect",
+    description="触发行业数据采集并写入本地 SQLite 数据库（同花顺+巨潮）",
 )
 def industry_collect() -> str:
-    """从 akshare 采集行业数据并写入本地数据库。"""
     results = []
     errors = []
 
-    # 1. 分类
-    try:
-        df = _try_cache(ak.stock_board_industry_name_ths, ttl=86400)
-        if df is not None and not df.empty:
-            rename = {}
-            for c in df.columns:
-                if "名称" in c or "板块" in c:
-                    rename[c] = "industry_name"
-                elif "代码" in c:
-                    rename[c] = "industry_code"
-            df_out = df.rename(columns=rename) if rename else df
-            if "industry_name" in df_out.columns and "industry_code" in df_out.columns:
-                db.save_classify(df_out, "ths")
-                results.append(f"分类: {len(df_out)} 条")
-    except Exception as e:
-        errors.append(f"分类采集失败: {e}")
+    # 1. 行业分类
+    df = ths.get_industry_list()
+    if df is not None and not df.empty:
+        db.save_classify(df, "ths")
+        results.append(f"分类: {len(df)} 条")
 
     # 2. 估值
-    try:
-        df = _try_cache(ak.stock_industry_valuation_em, ttl=86400)
-        if df is not None and not df.empty:
-            db.save_valuation(df)
-            results.append(f"估值: {len(df)} 条")
-    except Exception as e:
-        errors.append(f"估值采集失败: {e}")
+    df2 = cninfo.get_pe_ratio()
+    if df2 is not None and not df2.empty:
+        db.save_valuation(df2)
+        results.append(f"估值: {len(df2)} 条")
 
     # 3. 资金流
-    try:
-        df = _try_cache(ak.stock_fund_flow_industry, ttl=300)
-        if df is not None and not df.empty:
-            db.save_fund_flow(df)
-            results.append(f"资金流: {len(df)} 条")
-    except Exception as e:
-        errors.append(f"资金流采集失败: {e}")
+    df3 = ths.get_fund_flow()
+    if df3 is not None and not df3.empty:
+        db.save_fund_flow(df3)
+        results.append(f"资金流: {len(df3)} 条")
+
+    # 4. 行业一览（实时行情快照）
+    df4 = ths.get_industry_summary()
+    if df4 is not None and not df4.empty:
+        results.append(f"行情快照: {len(df4)} 条")
 
     stats = db.get_cache_stats()
     lines = ["=== 行业数据采集报告 ==="]
-    if results:
-        lines.extend([f"✅ {r}" for r in results])
-    if errors:
-        lines.extend([f"❌ {e}" for e in errors])
+    lines.extend([f"✅ {r}" for r in results])
+    lines.extend([f"❌ {e}" for e in errors])
     lines.append("")
-    lines.append("当前数据库状态:")
+    lines.append("数据库状态:")
     for name, cnt in stats.items():
         lines.append(f"  {name}: {cnt} 行")
     return "\n".join(lines)
 
 
 @mcp.tool(
-    title="行业数据库状态",
-    description="查看行业数据库各表的行数和缓存新鲜度",
+    name="industry_db_status",
+    description="行业数据库各表行数和缓存新鲜度",
 )
 def industry_db_status() -> str:
     stats = db.get_cache_stats()
     lines = ["=== 行业数据库状态 ==="]
     for name, cnt in stats.items():
         fresh = db.has_recent_data(name, 24)
-        status = "✅ 今日已更新" if fresh else "⚠️ 需更新"
-        lines.append(f"  {name:30s} {cnt:>6} 行  {status}")
-    lines.append(f"  数据库路径: {db.DB_PATH}")
+        lines.append(f"  {name:30s} {cnt:>6}行  {'✅ 今日已更新' if fresh else '⚠️ 需更新'}")
+    lines.append(f"  数据库: {db.DB_PATH}")
     return "\n".join(lines)
