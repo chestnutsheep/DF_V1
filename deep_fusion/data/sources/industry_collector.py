@@ -23,15 +23,14 @@ def collect_all_industry_daily(start_date: str = "20200101", workers: int = 3) -
     for i, ind in enumerate(industry_list):
         name = ind.get("industry_name") or ind.get("name", "")
         code = ind.get("industry_code") or ind.get("code", "")
-        symbol = code or name
-        if not symbol:
+        if not name:
             continue
 
-        print(f"  [{i+1}/{len(industry_list)}] {name} ({symbol})...")
+        print(f"  [{i+1}/{len(industry_list)}] {name} ({code})...")
         try:
             df = ak_cache(
                 ak.stock_board_industry_index_ths,
-                symbol=symbol,
+                symbol=name,  # 同花顺接口传行业名称
                 start_date=start_date,
                 end_date=datetime.now().strftime("%Y%m%d"),
                 ttl=3600,

@@ -125,7 +125,15 @@ def industry_daily_query(
     end_date: str = "",
     limit: int = 20,
 ) -> str:
-    df = db.get_daily(industry_code=industry or None, start_date=start_date or None, end_date=end_date or None, limit=limit)
+    # 支持行业名称 → 代码查找
+    code = industry
+    if industry and not industry.isdigit():
+        df_cls = db.get_classify("ths")
+        if df_cls is not None and not df_cls.empty:
+            match = df_cls[df_cls["industry_name"].str.contains(industry, na=False)]
+            if not match.empty:
+                code = match.iloc[0]["industry_code"]
+    df = db.get_daily(industry_code=code or None, start_date=start_date or None, end_date=end_date or None, limit=limit)
     if df is None or df.empty:
         return "本地无缓存数据，请先用 industry_daily_collect 采集"
     return df.tail(limit).to_csv(index=False, float_format="%.2f")
