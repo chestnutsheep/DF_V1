@@ -124,10 +124,16 @@ def init_db():
 
 def _log_collection(table: str, rows: int, status: str = "ok"):
     conn = _connect()
-    conn.execute(
-        "INSERT INTO collection_meta (collected_at, table_name, rows, status) VALUES (?, ?, ?, ?)",
-        (datetime.now().isoformat(), table, rows, status),
-    )
+    try:
+        conn.execute(
+            "INSERT INTO collection_meta (collected_at, table_name, rows, status) VALUES (?, ?, ?, ?)",
+            (datetime.now().isoformat(), table, rows, status),
+        )
+    except sqlite3.OperationalError:
+        conn.execute(
+            "INSERT INTO collection_meta (collected_at, section_name, rows, status) VALUES (?, ?, ?, ?)",
+            (datetime.now().isoformat(), table, rows, status),
+        )
     conn.commit()
     conn.close()
 

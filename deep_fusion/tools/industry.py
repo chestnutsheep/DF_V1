@@ -133,6 +133,39 @@ def industry_collect() -> str:
 
 
 @mcp.tool(
+    name="industry_sw_tree",
+    description="申万三级行业树（31一级→131二级→336三级），含估值数据",
+)
+def industry_sw_tree(
+    行业: str = Field("", description="一级行业名称，如 银行、钢铁。留空返回全部"),
+    深度: int = Field(3, description="树深度: 1=仅一级, 2=一到二级, 3=一到三级"),
+    展开: int = Field(2, description="展开前几个一级行业"),
+) -> str:
+    from ..data.sources.industry_sw import get_tree, tree_to_text
+
+    tree = get_tree()
+    if not tree:
+        return "数据为空，请先执行 industry_collect"
+
+    for f in tree:
+        f["children"] = sorted(f["children"], key=lambda x: x["name"])
+        for s in f["children"]:
+            s["children"] = sorted(s["children"], key=lambda x: x["name"])
+
+    if 行业:
+        tree = [f for f in tree if 行业 in f["name"]]
+        if not tree:
+            return f"未找到行业: {行业}"
+
+    out = [f"申万一级 {len(tree)} 个"]
+    shown = tree[:展开] if 展开 else tree
+    out.append(tree_to_text(shown, max_depth=深度))
+    if 展开 < len(tree):
+        out.append(f"... 还有 {len(tree) - 展开} 个一级行业")
+    return "\n".join(out)
+
+
+@mcp.tool(
     name="industry_db_status",
     description="行业数据库各表行数和缓存新鲜度",
 )
