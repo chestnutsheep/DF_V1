@@ -1,5 +1,7 @@
-"""Shenwan industry data source + DB storage + tree tool."""
+"""Shenwan data source: classification tree + daily analysis + constituents."""
 from __future__ import annotations
+
+from datetime import datetime
 
 import akshare as ak
 import pandas as pd
@@ -8,7 +10,11 @@ from ...cache import ak_cache
 from ...shared import industry_db as db
 
 _LABEL = {1: "申万一级", 2: "申万二级", 3: "申万三级"}
+_SW_SYMBOLS = ["市场表征", "一级行业", "二级行业", "风格指数"]
 
+# ═══════════════════════════════════════════════════════
+#  三级分类 + 树
+# ═══════════════════════════════════════════════════════
 
 def _fetch_and_rename(fn, level: int) -> pd.DataFrame:
     df = ak_cache(fn, ttl=86400)
@@ -31,22 +37,16 @@ def _fetch_and_rename(fn, level: int) -> pd.DataFrame:
         df["parent_name"] = ""
     return df
 
-
 def get_sw_all() -> dict[int, pd.DataFrame]:
-    """获取申万三级分类全部数据。"""
     return {
         1: _fetch_and_rename(ak.sw_index_first_info, 1),
         2: _fetch_and_rename(ak.sw_index_second_info, 2),
         3: _fetch_and_rename(ak.sw_index_third_info, 3),
     }
 
-
-def save_to_db():
-    """将申万三级分类写入 SQLite。"""
+def save_to_db() -> int:
     all_levels = get_sw_all()
     conn = db._connect()
-
-    # 清空重建
     conn.execute("DROP TABLE IF EXISTS meso_sw_classify")
     conn.execute("""
         CREATE TABLE meso_sw_classify (
@@ -62,7 +62,6 @@ def save_to_db():
             dividend_yield REAL
         )
     """)
-
     total = 0
     for level, df in all_levels.items():
         if df.empty:
@@ -73,18 +72,10 @@ def save_to_db():
                    (industry_code, industry_name, parent_name, level, source,
                     constituent_count, pe_static, pe_ttm, pb, dividend_yield)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    r.get("industry_code", ""),
-                    r.get("industry_name", ""),
-                    r.get("parent_name", ""),
-                    level,
-                    "sw",
-                    r.get("constituent_count"),
-                    r.get("pe_static"),
-                    r.get("pe_ttm"),
-                    r.get("pb"),
-                    r.get("dividend_yield"),
-                ),
+                (r.get("industry_code",""), r.get("industry_name",""),
+                 r.get("parent_name",""), level, "sw",
+                 r.get("constituent_count"), r.get("pe_static"),
+                 r.get("pe_ttm"), r.get("pb"), r.get("dividend_yield")),
             )
             total += 1
     conn.commit()
@@ -92,62 +83,109 @@ def save_to_db():
     conn.close()
     return total
 
-
 def get_tree() -> list[dict]:
-    """从 SQLite 读取三级树结构。"""
     conn = db._connect()
-    rows = conn.execute(
-        "SELECT * FROM meso_sw_classify ORDER BY level, industry_code"
-    ).fetchall()
+    rows = conn.execute("SELECT * FROM meso_sw_classify ORDER BY level, industry_code").fetchall()
     conn.close()
-
     by_level = {1: [], 2: [], 3: []}
     for r in rows:
         by_level[r["level"]].append({
-            "code": r["industry_code"],
-            "name": r["industry_name"],
-            "parent": r["parent_name"] or "",
-            "count": r["constituent_count"] or 0,
-            "pe_ttm": r["pe_ttm"],
-            "pb": r["pb"],
-            "children": [],
+            "code": r["industry_code"], "name": r["industry_name"],
+            "parent": r["parent_name"] or "", "count": r["constituent_count"] or 0,
+            "pe_ttm": r["pe_ttm"], "pb": r["pb"], "children": [],
         })
-
     # 三级挂二级
-    third_map = {t["name"]: t for t in by_level[3]}
+    tm = {t["name"]: t for t in by_level[3]}
     for t3 in by_level[3]:
-        parent = t3["parent"]
-        if parent in third_map:
-            third_map[parent]["children"].append(t3)
-
+        p = t3["parent"]
+        if p in tm:
+            tm[p]["children"].append(t3)
     # 二级挂一级
-    second_map = {s["name"]: s for s in by_level[2]}
+    sm = {s["name"]: s for s in by_level[2]}
     for s2 in by_level[2]:
-        parent = s2["parent"]
-        if parent in second_map:
-            second_map[parent]["children"].append(s2)
-        elif parent:  # 挂到一级
+        p = s2["parent"]
+        if p in sm:
+            sm[p]["children"].append(s2)
+        elif p:
             for f in by_level[1]:
-                if f["name"] == parent:
+                if f["name"] == p:
                     f["children"].append(s2)
-
     return by_level[1]
 
-
 def tree_to_text(tree: list[dict], max_depth: int = 3) -> str:
-    """树转文本，最多三级。"""
     lines = []
-
     def walk(nodes, depth, prefix):
         for i, n in enumerate(nodes):
             last = i == len(nodes) - 1
             conn = "└── " if last else "├── "
             child_p = "    " if last else "│   "
-            pe = f" PE={n.get('pe_ttm', '-')}" if n.get("pe_ttm") else ""
+            pe = f" PE={n['pe_ttm']}" if n.get("pe_ttm") else ""
             cnt = f" ({n['count']}只)" if n.get("count") else ""
             lines.append(f"{prefix}{conn}{n['name']}{cnt}{pe}")
             if depth < max_depth - 1 and n.get("children"):
                 walk(n["children"], depth + 1, prefix + child_p)
-
     walk(tree, 0, "")
     return "\n".join(lines)
+
+# ═══════════════════════════════════════════════════════
+#  SW 指数分析日报表
+# ═══════════════════════════════════════════════════════
+
+def get_daily_analysis(
+    symbol: str = "一级行业",
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> pd.DataFrame:
+    """申万指数分析日报表。
+
+    Args:
+        symbol: "市场表征" / "一级行业" / "二级行业" / "风格指数"
+        start_date: YYYYMMDD, 默认30天前
+        end_date: YYYYMMDD, 默认今天
+    """
+    if symbol not in _SW_SYMBOLS:
+        raise ValueError(f"symbol 可选: {_SW_SYMBOLS}")
+    if not end_date:
+        end_date = datetime.now().strftime("%Y%m%d")
+    if not start_date:
+        from datetime import timedelta
+        start = datetime.now() - timedelta(days=30)
+        start_date = start.strftime("%Y%m%d")
+
+    df = ak_cache(
+        ak.index_analysis_daily_sw,
+        symbol=symbol,
+        start_date=start_date,
+        end_date=end_date,
+        ttl=3600,
+    )
+    if df is None or df.empty:
+        return pd.DataFrame()
+    return df
+
+# ═══════════════════════════════════════════════════════
+#  成分股查询
+# ═══════════════════════════════════════════════════════
+
+def get_constituents(industry_code: str) -> pd.DataFrame:
+    """查询申万指数成分股。
+
+    Args:
+        industry_code: 申万指数代码，如 "801010"(一级) "801011"(二级) "850111"(三级)
+                       或不带 .SI 后缀
+    """
+    code = industry_code.replace(".SI", "")
+    df = ak_cache(ak.index_component_sw, symbol=code, ttl=86400)
+    if df is None or df.empty:
+        return pd.DataFrame()
+    rename = {}
+    for c in df.columns:
+        if "证券代码" in c or "代码" in c:
+            rename[c] = "stock_code"
+        elif "证券名称" in c or "名称" in c:
+            rename[c] = "stock_name"
+        elif "最新权重" in c:
+            rename[c] = "weight"
+        elif "计入日期" in c:
+            rename[c] = "added_date"
+    return df.rename(columns=rename)

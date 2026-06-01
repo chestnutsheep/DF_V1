@@ -137,9 +137,9 @@ def industry_collect() -> str:
     description="申万三级行业树（31一级→131二级→336三级），含估值数据",
 )
 def industry_sw_tree(
-    行业: str = Field("", description="一级行业名称，如 银行、钢铁。留空返回全部"),
-    深度: int = Field(3, description="树深度: 1=仅一级, 2=一到二级, 3=一到三级"),
-    展开: int = Field(2, description="展开前几个一级行业"),
+    行业: str = "",
+    深度: int = 3,
+    展开: int = 2,
 ) -> str:
     from ..data.sources.industry_sw import get_tree, tree_to_text
 
@@ -163,6 +163,38 @@ def industry_sw_tree(
     if 展开 < len(tree):
         out.append(f"... 还有 {len(tree) - 展开} 个一级行业")
     return "\n".join(out)
+
+
+@mcp.tool(
+    name="industry_sw_constituents",
+    description="查询申万指数成分股（一/二/三级行业通用，差异只在池子大小）",
+)
+def industry_sw_constituents(
+    行业代码: str = Field(..., description="申万指数代码，如 801010(一级) / 801011(二级) / 850111(三级)，不传.si后缀"),
+    limit: int = Field(50, description="返回前N只"),
+) -> str:
+    from ..data.sources.industry_sw import get_constituents
+    df = get_constituents(行业代码)
+    if df is None or df.empty:
+        return f"成分股数据暂不可用 (代码: {行业代码})"
+    return df.head(limit).to_csv(index=False, float_format="%.4f")
+
+
+@mcp.tool(
+    name="industry_sw_daily",
+    description="申万指数分析日报表：市场表征/一级行业/二级行业/风格指数，含PE/PB/涨跌幅",
+)
+def industry_sw_daily(
+    symbol: str = "一级行业",
+    start_date: str = "",
+    end_date: str = "",
+    limit: int = 50,
+) -> str:
+    from ..data.sources.industry_sw import get_daily_analysis
+    df = get_daily_analysis(symbol, start_date or None, end_date or None)
+    if df is None or df.empty:
+        return f"日报表数据暂不可用 (symbol={symbol})"
+    return df.head(limit).to_csv(index=False, float_format="%.2f")
 
 
 @mcp.tool(
