@@ -8,6 +8,7 @@ from ..server import mcp
 from ..shared import industry_db as db
 from ..data.sources import industry_ths as ths
 from ..data.sources import industry_cninfo as cninfo
+from ..data.sources import spot_prices as spot
 
 
 @mcp.tool(
@@ -208,4 +209,35 @@ def industry_db_status() -> str:
         fresh = db.has_recent_data(name, 24)
         lines.append(f"  {name:30s} {cnt:>6}行  {'✅ 今日已更新' if fresh else '⚠️ 需更新'}")
     lines.append(f"  数据库: {db.DB_PATH}")
+    return "\n".join(lines)
+
+
+@mcp.tool(
+    name="spot_prices",
+    description="大宗商品现货价格及基差（生意社），覆盖钢铁/有色/化工/能源/建材/农产品54个品种，日频数据",
+)
+def spot_prices(
+    symbol: str = "",
+    start_date: str = "",
+    end_date: str = "",
+    days: int = 30,
+    limit: int = 20,
+) -> str:
+    if symbol:
+        symbol = symbol.upper()
+    df = spot.get_spot_daily(symbol, start_date or None, end_date or None, days)
+    if df is None or df.empty:
+        return "现货价格数据暂不可用"
+    return df.head(limit).to_csv(index=False, float_format="%.2f")
+
+
+@mcp.tool(
+    name="spot_symbols",
+    description="列出所有可查的大宗商品现货品种代码",
+)
+def spot_symbols() -> str:
+    symbols = spot.list_symbols()
+    lines = [f"共 {len(symbols)} 个品种", ""]
+    for s in symbols:
+        lines.append(f"  {s['symbol']:4s}  {s['name']}")
     return "\n".join(lines)
