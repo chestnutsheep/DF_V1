@@ -214,30 +214,28 @@ def industry_db_status() -> str:
 
 @mcp.tool(
     name="spot_prices",
-    description="大宗商品现货价格及基差（生意社），覆盖钢铁/有色/化工/能源/建材/农产品54个品种，日频数据",
+    description="大宗商品现货行情（99qh），单个品种返回2012年至今全部历史数据",
 )
 def spot_prices(
-    symbol: str = "",
-    start_date: str = "",
-    end_date: str = "",
-    days: int = 30,
+    symbol: str = "螺纹钢",
     limit: int = 20,
 ) -> str:
-    if symbol:
-        symbol = symbol.upper()
-    df = spot.get_spot_daily(symbol, start_date or None, end_date or None, days)
+    df = spot.get_spot(symbol)
     if df is None or df.empty:
-        return "现货价格数据暂不可用"
-    return df.head(limit).to_csv(index=False, float_format="%.2f")
+        return f"无数据: {symbol}"
+    span = f"{df.iloc[0]['trade_date']} ~ {df.iloc[-1]['trade_date']}, {len(df)}条"
+    out = [f"=== {symbol} 现货走势 === [{span}]"]
+    out.append(df.tail(limit).to_csv(index=False, float_format="%.2f"))
+    return "\n".join(out)
 
 
 @mcp.tool(
     name="spot_symbols",
-    description="列出所有可查的大宗商品现货品种代码",
+    description="列出99qh所有可查的现货品种（81个），含交易所和品种名称",
 )
 def spot_symbols() -> str:
     symbols = spot.list_symbols()
-    lines = [f"共 {len(symbols)} 个品种", ""]
+    lines = [f"共 {len(symbols)} 个品种"]
     for s in symbols:
-        lines.append(f"  {s['symbol']:4s}  {s['name']}")
+        lines.append(f"  {s['交易所名称']:10s}  {s['品种名称']}")
     return "\n".join(lines)
