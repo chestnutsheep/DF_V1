@@ -10,6 +10,8 @@ from ..data.sources import industry_ths as ths
 from ..data.sources import industry_cninfo as cninfo
 from ..data.sources import spot_prices as spot
 from ..data.sources import caixin_indices as caixin
+from ..data.sources import multi_factor as mf
+from ..data.sources import caixin_indices as caixin
 
 
 @mcp.tool(
@@ -228,6 +230,17 @@ def spot_prices(
     out = [f"=== {symbol} 现货走势 === [{span}]"]
     out.append(df.tail(limit).to_csv(index=False, float_format="%.2f"))
     return "\n".join(out)
+
+
+@mcp.tool(
+    name="ff_factors",
+    description="Fama-French 多因子模型最新数据（Current Research Returns），含 Size 组合回报",
+)
+def ff_factors() -> str:
+    df = mf.get_ff_summary()
+    if df is None or df.empty:
+        return "FF因子数据暂不可用"
+    return df.to_csv(index=False, float_format="%.2f")
 
 
 @mcp.tool(
