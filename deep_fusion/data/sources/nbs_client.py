@@ -510,5 +510,41 @@ def _fetch_house_price_yoy() -> tuple[list[str], list[float]]:
             os.environ["SOCKS_PROXY"] = old_socks
 
 
+# ── 实物产品产量（接口预留，NBS API 产品级访问暂受限）────
+
+
+def _fetch_product_steel() -> tuple[list[str], list[float]]:
+    """粗钢产量（万吨），NBS 季度/月度数据"""
+    # TODO: NBS API 恢复后接入正式数据
+    # cid_monthly = "b92d3048917a4a72bb1c3e7592e70f28"
+    # indicator_id = "..."  # 粗钢销售量累计值
+    logger.warning("粗钢产量: NBS 产品级 API 暂不可用")
+    return [], []
+
+
+def _fetch_product_cement() -> tuple[list[str], list[float]]:
+    """水泥产量（万吨），月度数据"""
+    logger.warning("水泥产量: NBS 产品级 API 暂不可用")
+    return [], []
+
+
+def _fetch_product_steel_prod() -> tuple[list[str], list[float]]:
+    """钢材产量（万吨）"""
+    logger.warning("钢材产量: NBS 产品级 API 暂不可用")
+    return [], []
+
+
+def _fetch_product_coal() -> tuple[list[str], list[float]]:
+    """原煤产量（万吨）"""
+    logger.warning("原煤产量: NBS 产品级 API 暂不可用")
+    return [], []
+
+
+def _fetch_product_electricity() -> tuple[list[str], list[float]]:
+    """发电量（亿千瓦时）"""
+    logger.warning("发电量: NBS 产品级 API 暂不可用")
+    return [], []
+
+
 # ═══════════════════════════════════════════════════════════════
 # Kondratiev 可选算法

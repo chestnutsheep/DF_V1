@@ -91,6 +91,7 @@ atexit.register(CacheKey.close_all)
 
 import asyncio
 import logging
+import time
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
