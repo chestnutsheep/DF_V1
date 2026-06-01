@@ -9,6 +9,7 @@ from ..shared import industry_db as db
 from ..data.sources import industry_ths as ths
 from ..data.sources import industry_cninfo as cninfo
 from ..data.sources import spot_prices as spot
+from ..data.sources import caixin_indices as caixin
 
 
 @mcp.tool(
@@ -238,4 +239,35 @@ def spot_symbols() -> str:
     lines = [f"共 {len(symbols)} 个品种"]
     for s in symbols:
         lines.append(f"  {s['交易所名称']:10s}  {s['品种名称']}")
+    return "\n".join(lines)
+
+
+@mcp.tool(
+    name="caixin_indices",
+    description="财新指数数据（19个指数）：数字经济/新经济/大宗商品/高质量因子/AI策略/PMI等",
+)
+def caixin_indices(
+    name: str = "中国新经济指数",
+    limit: int = 20,
+) -> str:
+    df = caixin.get_index(name)
+    if df is None or df.empty:
+        return f"无数据: {name}"
+    span = f"{len(df)}条"
+    if "日期" in df.columns:
+        span = f"{df['日期'].iloc[0]} ~ {df['日期'].iloc[-1]}, {len(df)}条"
+    out = [f"=== {name} === [{span}]"]
+    out.append(df.tail(limit).to_csv(index=False, float_format="%.4f"))
+    return "\n".join(out)
+
+
+@mcp.tool(
+    name="caixin_list",
+    description="列出所有可查的财新指数（19个）",
+)
+def caixin_list() -> str:
+    indices = caixin.list_indices()
+    lines = [f"共 {len(indices)} 个财新指数"]
+    for i in indices:
+        lines.append(f"  {i['key']:15s}  {i['desc']}")
     return "\n".join(lines)
