@@ -149,6 +149,32 @@ def cycle_collect() -> str:
 
 
 @mcp.tool(
+    name="fred_list",
+    description="列出所有可采集的 FRED 数据集（共8个）",
+)
+def fred_list() -> str:
+    from ..shared.cycle_db import list_fred
+    items = list_fred()
+    lines = [f"共 {len(items)} 个 FRED 指标"]
+    for i in items:
+        lines.append(f"  {i['key']:20s}  {i['series_id']:10s}  {i['desc']}")
+    return "\n".join(lines)
+
+
+@mcp.tool(
+    name="wb_list",
+    description="列出所有可采集的世界银行数据集（共7个）",
+)
+def wb_list() -> str:
+    from ..shared.cycle_db import list_wb
+    items = list_wb()
+    lines = [f"共 {len(items)} 个世界银行指标"]
+    for i in items:
+        lines.append(f"  {i['key']:25s}  {i['indicator']:25s}  {i['desc']}")
+    return "\n".join(lines)
+
+
+@mcp.tool(
     name="cycle_cache_status",
     description="查看周期数据缓存状态",
 )
