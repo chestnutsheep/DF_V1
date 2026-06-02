@@ -1,19 +1,22 @@
-"""Cycle indicator cache layer — SQLite-backed, DB-first, live fallback.
+"""Cycle indicator cache layer — SQLite-backed, permanent storage.
 
-Stores raw indicator time series (dates, values) so cycles don't re-fetch every call.
+Data collected once stays forever. Manual/scheduled re-collect replaces rows.
+No "expiry" — historical macro data doesn't change.
 """
 from __future__ import annotations
 
+import logging
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 
-DB_PATH = Path.home() / "output" / "data" / "cycle_cache.db"
-FRESH_HOURS = 8  # 数据可复用窗口
+logger = logging.getLogger(__name__)
 
-# ── FRED / World Bank 指标注册 ─────────────────────────
+DB_PATH = Path.home() / "output" / "data" / "cycle_cache.db"
+
+# ── 指标注册 ─────────────────────────────────────────
 _FRED_INDICATORS: dict[str, tuple[str, str]] = {
     "fred_ppiaco":   ("PPIACO",            "生产者价格指数(全商品), 1913~"),
     "fred_gs10":     ("GS10",              "10年期国债收益率, 1953~"),
@@ -35,6 +38,8 @@ _WB_INDICATORS: dict[str, tuple[str, str, str]] = {
     "wb_electricity":    ("EG.USE.ELEC.KH.PC", "1W", "人均用电量"),
 }
 
+
+# ── DB 操作 ─────────────────────────────────────────
 
 def _connect() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -60,31 +65,34 @@ def _ensure_schema(conn: sqlite3.Connection):
             cached_at TEXT NOT NULL
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS cycle_log (
+            ts TEXT NOT NULL,
+            action TEXT NOT NULL,
+            detail TEXT NOT NULL
+        )
+    """)
     conn.commit()
 
 
 def get(indicator: str) -> pd.DataFrame | None:
+    """读 DB，有数据直接返回，不过期概念。"""
     conn = _connect()
-    row = conn.execute("SELECT cached_at FROM cycle_cache WHERE indicator=?", (indicator,)).fetchone()
-    if row:
-        cached = datetime.fromisoformat(row["cached_at"])
-        if datetime.now() - cached < timedelta(hours=FRESH_HOURS):
-            df = pd.read_sql(
-                "SELECT date, value FROM cycle_data WHERE indicator=? ORDER BY date",
-                conn, params=(indicator,),
-            )
-            conn.close()
-            if not df.empty:
-                return df
+    df = pd.read_sql(
+        "SELECT date, value FROM cycle_data WHERE indicator=? ORDER BY date",
+        conn, params=(indicator,),
+    )
     conn.close()
-    return None
+    return df if not df.empty else None
 
 
 def set(indicator: str, dates: list[str], values: list[float]):
+    """行级替换（INSERT OR REPLACE），每条数据独立更新。"""
     conn = _connect()
+    pairs = [(indicator, d, v) for d, v in zip(dates, values) if v is not None]
     conn.executemany(
         "INSERT OR REPLACE INTO cycle_data (indicator, date, value) VALUES (?, ?, ?)",
-        [(indicator, d, v) for d, v in zip(dates, values) if v is not None],
+        pairs,
     )
     conn.execute(
         "INSERT OR REPLACE INTO cycle_cache (indicator, cached_at) VALUES (?, ?)",
@@ -94,8 +102,21 @@ def set(indicator: str, dates: list[str], values: list[float]):
     conn.close()
 
 
+def log(action: str, detail: str):
+    """记录采集日志。"""
+    conn = _connect()
+    conn.execute(
+        "INSERT INTO cycle_log (ts, action, detail) VALUES (?, ?, ?)",
+        (datetime.now().isoformat(), action, detail),
+    )
+    conn.commit()
+    conn.close()
+
+
+# ── 批量采集 ─────────────────────────────────────────
+
 def cache_all():
-    """拉取全部指标（NBS + FRED + WB + akshare 宏观）并缓存到 DB。"""
+    """拉取全部指标（行级替换），异常只记日志不影响历史数据。"""
     from ..data.sources.nbs_client import (
         _fetch_nbs_inventory_yoy, _fetch_nbs_ind_yoy, _fetch_nbs_fix_inv_monthly,
         _fetch_nbs_re_dev_yoy, _fetch_nbs_cpi_yoy, _fetch_nbs_ppi_yoy,
@@ -110,8 +131,7 @@ def cache_all():
 
     results: dict[str, str | int] = {}
 
-    # ── NBS ──
-    for name, fn in [
+    nbs_fetchers = [
         ("inventory_yoy", _fetch_nbs_inventory_yoy),
         ("ind_yoy", _fetch_nbs_ind_yoy),
         ("fix_inv_monthly", _fetch_nbs_fix_inv_monthly),
@@ -126,16 +146,20 @@ def cache_all():
         ("re_new_start", _fetch_nbs_re_new_start),
         ("capacity_util", _fetch_nbs_capacity_util),
         ("house_price_yoy", _fetch_house_price_yoy),
-    ]:
+    ]
+    for name, fn in nbs_fetchers:
         try:
             dates, vals = fn()
             if dates:
                 set(name, dates, vals)
-                results[name] = len(dates)
+                results[name] = len(vals)
+                log("UPDATE_OK", f"{name}: {len(vals)} 行")
+            else:
+                log("UPDATE_SKIP", f"{name}: 返回空数据")
         except Exception as e:
+            log("UPDATE_FAIL", f"{name}: {e}")
             results[name] = f"❌ {e}"
 
-    # ── FRED ──
     for cache_key, (series_id, desc) in _FRED_INDICATORS.items():
         try:
             raw = fetch_fred(series_id)
@@ -144,10 +168,13 @@ def cache_all():
                 vals = [r[1] for r in raw]
                 set(cache_key, dates, vals)
                 results[cache_key] = len(vals)
+                log("UPDATE_OK", f"{cache_key}: {len(vals)} 行")
+            else:
+                log("UPDATE_SKIP", f"{cache_key}: 空")
         except Exception as e:
+            log("UPDATE_FAIL", f"{cache_key}: {e}")
             results[cache_key] = f"❌ {e}"
 
-    # ── World Bank ──
     for cache_key, (indicator, country, desc) in _WB_INDICATORS.items():
         try:
             raw = fetch_wb(indicator, country)
@@ -156,10 +183,13 @@ def cache_all():
                 vals = [r[1] for r in raw]
                 set(cache_key, dates, vals)
                 results[cache_key] = len(vals)
+                log("UPDATE_OK", f"{cache_key}: {len(vals)} 行")
+            else:
+                log("UPDATE_SKIP", f"{cache_key}: 空")
         except Exception as e:
+            log("UPDATE_FAIL", f"{cache_key}: {e}")
             results[cache_key] = f"❌ {e}"
 
-    # ── akshare 宏观 ──
     for name, fn, col in [
         ("pmi_macro", ak.macro_china_pmi, "制造业采购经理人指数"),
         ("m2_yearly", ak.macro_china_m2_yearly, "货币供应量同比增速"),
@@ -171,7 +201,9 @@ def cache_all():
                 vals = df[col].tolist()
                 set(name, [str(d)[:10] for d in dates], vals)
                 results[name] = len(vals)
+                log("UPDATE_OK", f"{name}: {len(vals)} 行")
         except Exception as e:
+            log("UPDATE_FAIL", f"{name}: {e}")
             results[name] = f"❌ {e}"
 
     return results
