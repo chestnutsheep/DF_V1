@@ -150,17 +150,22 @@ def cycle_collect() -> str:
 
 @mcp.tool(
     name="fred_data",
-    description="查询 FRED 数据序列（DB优先，无缓存则实时拉取）",
+    description="FRED 数据查询。传注册名(fred_ppiaco)或任意 series_id(GDPC1/UNRATE/...)",
 )
 def fred_data(
     series: str = "fred_ppiaco",
     limit: int = 20,
 ) -> str:
-    from ..data.sources.fred import get as fred_get
-    raw = fred_get(series)
+    from ..data.sources.fred import SERIES, get as fred_get
+    from ..data.sources.wb_fred_adapter import fetch_fred
+
+    is_registered = series in SERIES
+    series_id = SERIES[series][0] if is_registered else series.upper()
+    raw = fred_get(series) if is_registered else fetch_fred(series_id)
     if not raw:
         return f"无数据: {series}"
-    out = [f"=== {series} === [{len(raw)} 条, {raw[0][0]} ~ {raw[-1][0]}]"]
+    tag = "" if is_registered else " (未缓存)"
+    out = [f"=== {series_id} === [{len(raw)} 条, {raw[0][0]} ~ {raw[-1][0]}]{tag}"]
     out.append("date,value")
     for d, v in raw[-limit:]:
         out.append(f"{d},{v:.2f}")
@@ -182,17 +187,28 @@ def fred_list() -> str:
 
 @mcp.tool(
     name="wb_data",
-    description="查询世界银行数据序列（DB优先，无缓存则实时拉取）",
+    description="世界银行数据查询。传注册名(wb_gdp_growth)或任意 indicator+国家代码",
 )
 def wb_data(
     indicator: str = "wb_gdp_growth",
+    country: str = "1W",
     limit: int = 20,
 ) -> str:
-    from ..data.sources.world_bank import get as wb_get
-    raw = wb_get(indicator)
+    from ..data.sources.world_bank import INDICATORS, get as wb_get
+    from ..data.sources.wb_fred_adapter import fetch_wb
+
+    is_registered = indicator in INDICATORS
+    if is_registered:
+        raw = wb_get(indicator)
+        label = INDICATORS[indicator][0]
+    else:
+        raw = fetch_wb(indicator, country)
+        label = indicator
+
     if not raw:
         return f"无数据: {indicator}"
-    out = [f"=== {indicator} === [{len(raw)} 条, {raw[0][0]} ~ {raw[-1][0]}]"]
+    tag = "" if is_registered else " (未缓存)"
+    out = [f"=== {label} === [{len(raw)} 条, {raw[0][0]} ~ {raw[-1][0]}]{tag}"]
     out.append("year,value")
     for y, v in raw[-limit:]:
         out.append(f"{y},{v:.2f}")
