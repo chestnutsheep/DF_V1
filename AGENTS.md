@@ -43,7 +43,7 @@ DeepFusion/
 │       └── stocks.py        # 股票基础（5个工具）
 ```
 
-## 工具注册清单（共81个工具）
+## 工具注册清单（共87个工具）
 
 ### stocks.py — 股票基础（5个）
 
@@ -217,6 +217,62 @@ DeepFusion/
 | `.env.example` | 环境变量模板（代理/API地址/缓存目录/DB_CONFIG） |
 | `registry_add.bat` | 智能检测 Clash 端口 → 自动注册到 User 环境变量 |
 
+## 数据获取工具（2026-06-02 新增）
+
+### 全局数据源（MCP 工具，DB-first）
+
+| 工具 | 参数 | 数据源 | 缓存 |
+|------|------|--------|------|
+| `fred_data(series, limit)` | series="fred_ppiaco" 或任意 FRED series_id (GDPC1/UNRATE/...)，limit=20 | **FRED** (St. Louis Fed)，1913年至今 | `cycle_cache.db`，8h有效期 |
+| `fred_list()` | 无 | — | — |
+| `wb_data(indicator, country, limit)` | indicator="wb_gdp_growth" 或任意 WB code (NY.GDP.MKTP.CD/...)，country="1W" 全球，"CN"中国，"US"美国 | **World Bank**，1960年至今 | `cycle_cache.db`，8h有效期 |
+| `wb_list()` | 无 | — | — |
+| `cycle_collect()` | 可选 start_date | 批量拉取全部 NBS(14) + FRED(8) + WB(7) + akshare宏观(2) 共31指标 → 写入缓存 | `cycle_cache.db` |
+| `cycle_cache_status()` | 无 | 查看缓存中各指标行数 | — |
+
+### 预注册指标
+
+| 缓存 key | 原始代码 | 说明 |
+|----------|----------|------|
+| **FRED (8)** | | |
+| fred_ppiaco | PPIACO | 生产者价格指数(全商品), 1913~ |
+| fred_gs10 | GS10 | 10年期国债收益率, 1953~ |
+| fred_cpiaucns | CPIAUCNS | CPI 所有城镇消费者, 1913~ |
+| fred_gnpca | GNPCA | 实际 GNP, 1929~ |
+| fred_indpro | INDPRO | 工业生产指数, 1919~ |
+| fred_unrate | UNRATE | 失业率, 1948~ |
+| fred_fedfunds | FEDFUNDS | 联邦基金利率, 1954~ |
+| fred_t5yiep | T5YIE | 5年期盈亏平衡通胀率, 2003~ |
+| **World Bank (7)** | | |
+| wb_gdp_growth | NY.GDP.MKTP.KD.ZG | 全球GDP增长率 |
+| wb_gdp_per_capita | NY.GDP.PCAP.KD | 全球人均GDP |
+| wb_trade_pct | NE.TRD.GNFS.ZS | 贸易占GDP比重 |
+| wb_population | SP.POP.TOTL | 总人口 |
+| wb_inflation | FP.CPI.TOTL.ZG | CPI通胀率 |
+| wb_patent | IP.PAT.RESD | 居民专利申请量 |
+| wb_electricity | EG.USE.ELEC.KH.PC | 人均用电量 |
+
+### 数据源文件
+
+| 文件 | 用途 |
+|------|------|
+| `data/sources/fred.py` | FRED 数据源（8系列注册 + 任意 series_id 查询） |
+| `data/sources/world_bank.py` | World Bank 数据源（7指标注册 + 任意 indicator 查询） |
+| `data/sources/wb_fred_adapter.py` | FRED/WB 原始 HTTP 适配器（底层请求） |
+| `shared/cycle_db.py` | 周期指标缓存层（SQLite + DB-first + 8h失效） |
+
+### 数据流
+
+```
+fred_data("GDPC1")
+  → cycle_db.get("fred_ppiaco")            有 → 返回
+  → fetch_fred("GDPC1") → cycle_db.set()  无 → 拉取 → 缓存 → 返回
+
+wb_data("NY.GDP.MKTP.CD", "CN")
+  → cycle_db.get("NY.GDP.MKTP.CD_CN")      有 → 返回
+  → fetch_wb("NY.GDP.MKTP.CD", "CN")       无 → 拉取 → 返回（不缓存第三方）
+```
+
 ## 当前状态（2026-05-25，第7轮验证）
 
 | 维度 | 值 |
@@ -225,7 +281,8 @@ DeepFusion/
 | 注册工具 | **81 个**（+8 周期工具：kitchin/juglar/kuznets/kondratiev + 4 chart） |
 | Prompts | 7 个 |
 | Resources | 14 个 |
-| 核心数据源 | akshare (东方财富/雪球/新浪/同花顺/申万) + OKX/Binance API |
+| 数据获取工具 | fred_data / fred_list / wb_data / wb_list / cycle_collect / cycle_cache_status |
+| 核心数据源 | akshare (东方财富/雪球/新浪/同花顺/申万) + OKX/Binance API + FRED + World Bank + NBS |
 | 反爬策略 | UA 轮换 + exp backoff retry + session 复用 + 限流信号量(3) + _em 冷却期(5s) + _em 无代理回退 + proxy 支持 |
 | 第7轮新增 | `cycles.py`（8 工具）、`spectral.py`（共享库）、`DB_CONFIG` 集中管理、`cycles/` 和 `pipelines/` 目录删除 |
 | 第7轮验证 | 全部 81 工具注册确认；`spectral` import OK；`DB_CONFIG` import OK；`backend` import OK；cycles.py syntax OK |
