@@ -9,11 +9,22 @@ from ..data.sources import policy
 
 @mcp.tool(
     name="policy_collect",
-    description="抓取国务院(gov.cn)最新政策文件并入库",
+    description="全站采集：国务院/统计局/央行/财政部/发改委/外管局 政策文件",
 )
-def policy_collect(max_pages: int = 3) -> str:
-    result = policy.collect(max_pages=max_pages)
-    return f"采集完成: 共 {result['total']} 条, 新增 {result['new']} 条"
+def policy_collect(max_pages: int = 2) -> str:
+    results = policy.collect_all(max_pages=max_pages)
+    lines = ["=== 政策采集报告 ==="]
+    total_all = 0
+    new_all = 0
+    for site, r in results.items():
+        if "error" in r:
+            lines.append(f"  ❌ {site}: {r['error']}")
+        else:
+            lines.append(f"  ✅ {site}: {r['total']} 条, 新增 {r['new']}")
+            total_all += r["total"]
+            new_all += r["new"]
+    lines.append(f"合计: {total_all} 条, 新增 {new_all}")
+    return "\n".join(lines)
 
 
 @mcp.tool(
