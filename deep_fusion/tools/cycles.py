@@ -128,6 +128,42 @@ def data_kuznets() -> str:
 
 
 # ============================================================
+#  周期数据缓存工具
+# ============================================================
+
+@mcp.tool(
+    name="cycle_collect",
+    description="预采集全部周期指标数据到本地 SQLite 缓存，避免每次分析重新拉取",
+)
+def cycle_collect() -> str:
+    from ..shared.cycle_db import cache_all, stats
+    results = cache_all()
+    st = stats()
+    lines = [f"=== 周期数据采集 ===  共 {len(st)} 个指标"]
+    for name, cnt in sorted(st.items()):
+        lines.append(f"  {name:25s} {cnt:>4} 条")
+    for name, err in results.items():
+        if isinstance(err, str) and err.startswith("❌"):
+            lines.append(f"  {name:25s} {err}")
+    return "\n".join(lines)
+
+
+@mcp.tool(
+    name="cycle_cache_status",
+    description="查看周期数据缓存状态",
+)
+def cycle_cache_status() -> str:
+    from ..shared.cycle_db import stats
+    st = stats()
+    lines = [f"周期数据缓存: {len(st)} 个指标"]
+    for name, cnt in sorted(st.items()):
+        lines.append(f"  {name:25s} {cnt:>4} 条")
+    if not st:
+        lines.append("  (空，请先用 cycle_collect 采集)")
+    return "\n".join(lines)
+
+
+# ============================================================
 #  康波周期（单独注册，参数更多）
 # ============================================================
 @mcp.tool(

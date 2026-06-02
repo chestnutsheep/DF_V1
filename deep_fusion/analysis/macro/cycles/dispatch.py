@@ -14,9 +14,25 @@ logger = logging.getLogger(__name__)
 # ── _nbs — lazy-resolved fetch wrapper ──
 
 def _nbs(name: str, key: str) -> IndicatorDef:
+    """DB-first NBS data fetcher.
+
+    Cache key convention: strip "fetch_" prefix from fn name.
+    e.g. fetch_ind_yoy → cache key "ind_yoy"
+    """
+    _cache_key = name.replace("fetch_", "").replace("_nbs_", "")
     def _resolve():
+        from deep_fusion.shared.cycle_db import get, set as db_set
         from deep_fusion.tools.cycles import _FN_MAP
-        return _FN_MAP[name]()
+        cached = get(_cache_key)
+        if cached is not None:
+            return cached["date"].tolist(), [float(v) if v is not None else None for v in cached["value"]]
+        dates, vals = _FN_MAP[name]()
+        if dates:
+            try:
+                db_set(_cache_key, dates, vals)
+            except Exception:
+                pass
+        return dates, vals
     return IndicatorDef(key=key, fetch_fn=_resolve)
 
 
