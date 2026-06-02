@@ -149,6 +149,25 @@ def cycle_collect() -> str:
 
 
 @mcp.tool(
+    name="fred_data",
+    description="查询 FRED 数据序列（DB优先，无缓存则实时拉取）",
+)
+def fred_data(
+    series: str = "fred_ppiaco",
+    limit: int = 20,
+) -> str:
+    from ..data.sources.fred import get as fred_get
+    raw = fred_get(series)
+    if not raw:
+        return f"无数据: {series}"
+    out = [f"=== {series} === [{len(raw)} 条, {raw[0][0]} ~ {raw[-1][0]}]"]
+    out.append("date,value")
+    for d, v in raw[-limit:]:
+        out.append(f"{d},{v:.2f}")
+    return "\n".join(out)
+
+
+@mcp.tool(
     name="fred_list",
     description="列出所有可采集的 FRED 数据集（共8个）",
 )
@@ -159,6 +178,25 @@ def fred_list() -> str:
     for i in items:
         lines.append(f"  {i['key']:20s}  {i['series_id']:10s}  {i['desc']}")
     return "\n".join(lines)
+
+
+@mcp.tool(
+    name="wb_data",
+    description="查询世界银行数据序列（DB优先，无缓存则实时拉取）",
+)
+def wb_data(
+    indicator: str = "wb_gdp_growth",
+    limit: int = 20,
+) -> str:
+    from ..data.sources.world_bank import get as wb_get
+    raw = wb_get(indicator)
+    if not raw:
+        return f"无数据: {indicator}"
+    out = [f"=== {indicator} === [{len(raw)} 条, {raw[0][0]} ~ {raw[-1][0]}]"]
+    out.append("year,value")
+    for y, v in raw[-limit:]:
+        out.append(f"{y},{v:.2f}")
+    return "\n".join(out)
 
 
 @mcp.tool(
