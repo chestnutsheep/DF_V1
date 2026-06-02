@@ -5,8 +5,13 @@ import re
 from datetime import datetime
 from typing import Any
 
-import requests
+import requests as _rq
 from bs4 import BeautifulSoup
+
+# gov.cn 直连，不走代理（Clash 可能干扰国内政务网站）
+_SESSION = _rq.Session()
+_SESSION.headers.update({"User-Agent": "Mozilla/5.0"})
+_SESSION.trust_env = False  # 忽略 HTTP_PROXY/HTTPS_PROXY 环境变量
 
 from ...shared.policy_db import PolicyDB
 
@@ -32,7 +37,7 @@ def fetch_gov_latest(max_pages: int = 3) -> list[dict[str, Any]]:
         for page in range(1, max_pages + 1):
             url = f"{base_url}index.htm" if page == 1 else f"{base_url}index_{page}.htm"
             try:
-                r = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+                r = _SESSION.get(url, timeout=15)
                 if r.status_code != 200:
                     continue
                 soup = BeautifulSoup(r.text, "html.parser")
@@ -67,7 +72,7 @@ def fetch_gov_latest(max_pages: int = 3) -> list[dict[str, Any]]:
 def fetch_detail(entry: dict[str, Any]) -> dict[str, Any]:
     """抓取单篇政策详情。"""
     try:
-        r = requests.get(entry["url"], timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+        r = _SESSION.get(entry["url"], timeout=15)
         if r.status_code != 200:
             return entry
         soup = BeautifulSoup(r.text, "html.parser")
