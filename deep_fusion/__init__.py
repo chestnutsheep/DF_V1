@@ -28,6 +28,7 @@ from .tools import (
     industry,
     macro,
     market,
+    policy,
     portfolio,
     precious_metals,
     stock_reports,

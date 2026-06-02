@@ -36,6 +36,8 @@ def _extract_detail(entry: dict) -> dict:
         r = _SESSION.get(entry["url"], timeout=15)
         if r.status_code != 200:
             return entry
+        if r.encoding and r.encoding.lower() == "iso-8859-1" and r.apparent_encoding:
+            r.encoding = r.apparent_encoding
         soup = BeautifulSoup(r.text, "html.parser")
 
         # 标题 — 多策略
@@ -117,6 +119,8 @@ def _parse_list(url: str, link_filter: Callable[[str], bool],
             r = _SESSION.get(page_url, timeout=15)
             if r.status_code != 200:
                 continue
+            if r.encoding and r.encoding.lower() == "iso-8859-1" and r.apparent_encoding:
+                r.encoding = r.apparent_encoding
             soup = BeautifulSoup(r.text, "html.parser")
             for a in soup.find_all("a", href=True):
                 href = a["href"]
