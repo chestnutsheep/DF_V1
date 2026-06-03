@@ -326,6 +326,55 @@ def macro_fixed_investment(
     return df.to_csv(index=False, float_format="%.2f")
 
 
+@mcp.tool(
+    title="获取全球PMI合成指数",
+    description="合成全球制造业PMI指数（美国ISM×0.6 + 欧元区×0.4），附各经济体明细。前端国际Tab用。",
+)
+def global_pmi(
+    limit: int = Field(24, description="返回月数"),
+) -> str:
+    """合成全球制造业PMI ≈ US ISM×0.6 + Euro×0.4"""
+    results = {}
+
+    us = ak_cache(ak.macro_usa_ism_pmi, ttl=86400, ttl2=604800)
+    if us is not None and not us.empty:
+        results["美国ISM制造业PMI"] = us.tail(limit).to_csv(index=False, float_format="%.1f")
+
+    euro = ak_cache(ak.macro_euro_manufacturing_pmi, ttl=86400, ttl2=604800)
+    if euro is not None and not euro.empty:
+        results["欧元区制造业PMI"] = euro.tail(limit).to_csv(index=False, float_format="%.1f")
+
+    cn = ak_cache(ak.macro_china_pmi, ttl=86400, ttl2=604800)
+    if cn is not None and not cn.empty:
+        results["中国制造业PMI"] = cn.tail(limit).to_csv(index=False, float_format="%.1f")
+
+    # 合成: 最新一期 US×0.6 + Euro×0.4（按GDP权重近似）
+    if not us.empty and not euro.empty:
+        try:
+            us_col = "今值" if "今值" in us.columns else us.columns[2]
+            euro_col = "今值" if "今值" in euro.columns else euro.columns[2]
+            us_v = pd.to_numeric(us[us_col], errors="coerce").tail(min(limit, len(us)))
+            euro_v = pd.to_numeric(euro[euro_col], errors="coerce").tail(min(limit, len(euro)))
+            aligned = pd.concat([us_v.reset_index(drop=True), euro_v.reset_index(drop=True)], axis=1).dropna()
+            if not aligned.empty and len(aligned) >= 2:
+                gbl = aligned.iloc[:, 0] * 0.6 + aligned.iloc[:, 1] * 0.4
+                dates = us["日期"].tail(len(gbl)).tolist() if "日期" in us.columns else list(range(len(gbl)))
+                synth = pd.DataFrame({"日期": dates[:len(gbl)], "全球PMI(合成)": gbl.values})
+                results["全球PMI(美国×0.6+欧元区×0.4)"] = synth.tail(limit).to_csv(index=False, float_format="%.1f")
+        except Exception:
+            pass
+
+    if not results:
+        return "未获取到PMI数据"
+
+    output = []
+    for title, data in results.items():
+        output.append(f"=== {title} ===")
+        output.append(data)
+        output.append("")
+    return "\n".join(output)
+
+
 def _nbs_gdp():
     from ..tools.cycles import _fetch_nbs_gdp_quarterly as _fn
     return _fn()

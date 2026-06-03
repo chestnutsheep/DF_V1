@@ -20,6 +20,7 @@ from . import resources
 
 from .tools import (
     analysis,
+    bonds,
     crypto,
     cycles,
     forex,
@@ -37,6 +38,7 @@ from .tools import (
 
 __all__ = [
     "analysis",
+    "bonds",
     "crypto",
     "cycles",
     "forex",

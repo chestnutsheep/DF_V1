@@ -13,6 +13,7 @@ from pydantic import Field
 
 from ..server import mcp
 from ..shared.utils import ak_cache
+from ..cache import CacheKey
 
 # ── 分析层导入 ────────────────────────────────────────
 from ..analysis.macro.cycles.engine import (
@@ -105,8 +106,14 @@ for _cid in ["kitchin", "juglar", "kuznets"]:
     description="获取基钦周期（库存周期）各阶段定位数据（JSON数组）",
 )
 def data_kitchin() -> str:
+    _ck = CacheKey.init("cycles_data_kitchin", ttl=604800, ttl2=2592000)
+    cached = _ck.get()
+    if cached is not None and isinstance(cached, str):
+        return cached
     _, _, results = _compute("kitchin", limit=0)
-    return json.dumps(results, ensure_ascii=False)
+    text = json.dumps(results, ensure_ascii=False)
+    _ck.set(text)
+    return text
 
 
 @mcp.tool(
@@ -114,8 +121,14 @@ def data_kitchin() -> str:
     description="获取朱格拉周期（固定资本投资周期）各阶段定位数据（JSON数组）",
 )
 def data_juglar() -> str:
+    _ck = CacheKey.init("cycles_data_juglar", ttl=604800, ttl2=2592000)
+    cached = _ck.get()
+    if cached is not None and isinstance(cached, str):
+        return cached
     _, _, results = _compute("juglar", limit=0)
-    return json.dumps(results, ensure_ascii=False)
+    text = json.dumps(results, ensure_ascii=False)
+    _ck.set(text)
+    return text
 
 
 @mcp.tool(
@@ -123,8 +136,14 @@ def data_juglar() -> str:
     description="获取库兹涅茨周期（房地产周期）各阶段定位数据（JSON数组）",
 )
 def data_kuznets() -> str:
+    _ck = CacheKey.init("cycles_data_kuznets", ttl=604800, ttl2=2592000)
+    cached = _ck.get()
+    if cached is not None and isinstance(cached, str):
+        return cached
     _, _, results = _compute("kuznets", limit=0)
-    return json.dumps(results, ensure_ascii=False)
+    text = json.dumps(results, ensure_ascii=False)
+    _ck.set(text)
+    return text
 
 
 # ============================================================
@@ -145,6 +164,35 @@ def cycle_collect() -> str:
     for name, err in results.items():
         if isinstance(err, str) and err.startswith("❌"):
             lines.append(f"  {name:25s} {err}")
+
+    # ── 高级缓存器：预热各周期分析计算结果 ──
+    lines.append("")
+    lines.append("=== 计算结果预热 ===")
+    for cid, ckey in [("kitchin", "cycles_data_kitchin"),
+                       ("juglar", "cycles_data_juglar"),
+                       ("kuznets", "cycles_data_kuznets")]:
+        try:
+            _ck = CacheKey.init(ckey, ttl=604800, ttl2=2592000)
+            if _ck.get() is None:
+                _, _, res = _compute(cid, limit=0)
+                _ck.set(json.dumps(res, ensure_ascii=False))
+                lines.append(f"  {cid:10s} ✅ 计算并缓存 ({len(res)} 期)")
+            else:
+                lines.append(f"  {cid:10s} ✅ 已有缓存")
+        except Exception as e:
+            lines.append(f"  {cid:10s} ❌ {e}")
+
+    try:
+        _ck_k = CacheKey.init("cycles_report_kondratiev_pca", ttl=604800, ttl2=2592000)
+        if _ck_k.get() is None:
+            # 走 kondratiev_cycle() 完整路径，它自己写缓存
+            text = kondratiev_cycle("pca")
+            lines.append(f"  kondratiev ✅ 已计算")
+        else:
+            lines.append(f"  kondratiev ✅ 已有缓存")
+    except Exception as e:
+        lines.append(f"  kondratiev ❌ {e}")
+
     return "\n".join(lines)
 
 
@@ -253,6 +301,10 @@ def cycle_cache_status() -> str:
 def kondratiev_cycle(
     method: str = Field("pca", description="计算方法: pca/wavelet/bandpass"),
 ) -> str:
+    _ck = CacheKey.init(f"cycles_report_kondratiev_{method}", ttl=604800, ttl2=2592000)
+    cached = _ck.get()
+    if cached is not None and isinstance(cached, str):
+        return cached
     result, vals = _compute_kondratiev(method)
     if not vals:
         return "数据不足（需要至少 20 年序列）"
@@ -304,7 +356,9 @@ def kondratiev_cycle(
         slope_dir = "上升" if slope > 0 else "下降"
         lines.append(f"  趋势斜率: {slope:.4f} ({slope_dir})")
     lines.append("═" * 50)
-    return "\n".join(lines)
+    text = "\n".join(lines)
+    _ck.set(text)
+    return text
 
 
 @mcp.tool(
@@ -328,5 +382,11 @@ def chart_kondratiev_cycle(
 def data_kondratiev(
     method: str = Field("pca", description="计算方法: pca/wavelet/bandpass"),
 ) -> str:
+    _ck = CacheKey.init(f"cycles_data_kondratiev_{method}", ttl=604800, ttl2=2592000)
+    cached = _ck.get()
+    if cached is not None and isinstance(cached, str):
+        return cached
     result, _ = _compute_kondratiev(method)
-    return json.dumps(result, ensure_ascii=False)
+    text = json.dumps(result, ensure_ascii=False)
+    _ck.set(text)
+    return text
