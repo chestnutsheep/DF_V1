@@ -37,8 +37,8 @@ app = Starlette(routes=[
 ])
 
 from starlette.staticfiles import StaticFiles
-react_dist = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                           '..', 'deep-fusion-dashboard', 'dist')
+react_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           'dashboard', 'dist')
 if os.path.isdir(react_dist):
     app.mount('/', StaticFiles(directory=react_dist, html=True), name='dashboard')
     print(f'  ⟡ Deep Fusion → http://localhost:8080 (React dashboard + API)')
