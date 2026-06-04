@@ -45,8 +45,8 @@ function renderChart(div, rows) {
     xAxis: {
       type: 'category', data: periods,
       axisLabel: {
-        color: key('--text-muted'),
-        fontSize: 7,
+        color: key('--text-primary'),
+        fontSize: 11,
         formatter: (v) => {
           const m = v?.substring(4,6);
           if (m === '01') return `{year|${v.substring(0,4)}}`;
@@ -54,16 +54,16 @@ function renderChart(div, rows) {
           return `{tick||}`;
         },
         rich: {
-          year: { fontSize: 10, fontWeight: 700, color: key('--text-primary') },
-          qtr: { fontSize: 8, color: key('--text-secondary') },
-          tick: { fontSize: 7, color: key('--text-muted') },
+          year: { fontSize: 14, fontWeight: 700, color: key('--text-primary') },
+          qtr: { fontSize: 11, color: key('--text-secondary') },
+          tick: { fontSize: 10, color: key('--text-muted') },
         },
       },
       axisLine: { lineStyle: { color: key('--border-subtle') } },
     },
     yAxis: {
       type: 'value',
-      axisLabel: { color: key('--text-muted'), fontSize: 8 },
+      axisLabel: { color: key('--text-primary'), fontSize: 11 },
       splitLine: { lineStyle: { color: key('--border-subtle'), type: 'dashed' } },
     },
     dataZoom: [{ type: 'inside', start: Math.max(0, 100 - 6000 / periods.length), end: 100 }],
@@ -121,7 +121,7 @@ export default function KitchinTab() {
       {/* 图表 */}
       <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8, marginBottom: 16 }}>
         {rows.length > 0
-          ? <div ref={ref} style={{ width: '100%', height: 380 }} />
+          ? <div ref={ref} style={{ width: '70%', height: 460, margin: '0 auto' }} />
           : <div style={{ width: '100%', height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
               {isLoading ? '加载中...' : '暂无数据'}
             </div>}

@@ -7,8 +7,6 @@ describe('KitchinTab 数据流', () => {
     period: '202604',
     inventory_yoy: 6.7,
     demand_yoy: 5.8,
-    pmi: 49.9,
-    m2_yoy: 8.8,
     fix_inv_yoy: 4.2,
     real_inventory_yoy: 4.6,
   };
@@ -42,16 +40,14 @@ describe('KitchinTab 数据流', () => {
     const prev = {
       inventory_yoy: 5.2,
       demand_yoy: 4.5,
-      pmi: 50.6,
-      m2_yoy: 8.5,
       fix_inv_yoy: 3.8,
       real_inventory_yoy: 4.2,
     };
     const cards = prepareCardData(KITCHIN_METRICS, mockData, prev);
     const inv = cards.find(c => c.key === 'inventory_yoy');
     expect(inv.dir).toBe('up');
-    const pmi = cards.find(c => c.key === 'pmi');
-    expect(pmi.dir).toBe('down');
+    const fix = cards.find(c => c.key === 'fix_inv_yoy');
+    expect(fix.dir).toBe('up');
   });
 
   it('缺失值处理', () => {

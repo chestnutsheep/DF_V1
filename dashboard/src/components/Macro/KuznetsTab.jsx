@@ -44,7 +44,7 @@ function renderChart(div, rows) {
     xAxis: {
       type: 'category', data: periods,
       axisLabel: {
-        color: '#A09888', fontSize: 7,
+        color: '#E8E0D0', fontSize: 11,
         formatter: (v) => {
           const m = v?.substring(4,6);
           if (m === '01') return `{year|${v.substring(0,4)}}`;
@@ -52,16 +52,16 @@ function renderChart(div, rows) {
           return `{tick||}`;
         },
         rich: {
-          year: { fontSize: 10, fontWeight: 700, color: '#E8E0D0' },
-          qtr: { fontSize: 8, color: '#B0A898' },
-          tick: { fontSize: 7, color: '#706858' },
+          year: { fontSize: 14, fontWeight: 700, color: '#E8E0D0' },
+          qtr: { fontSize: 11, color: '#B0A898' },
+          tick: { fontSize: 10, color: '#706858' },
         },
       },
       axisLine: { lineStyle: { color: 'rgba(212,168,83,0.12)' } },
     },
     yAxis: {
       type: 'value',
-      axisLabel: { color: '#A09888', fontSize: 8 },
+      axisLabel: { color: '#E8E0D0', fontSize: 11 },
       splitLine: { lineStyle: { color: 'rgba(212,168,83,0.08)', type: 'dashed' } },
     },
     dataZoom: [{ type: 'inside', start: Math.max(0, 100 - 6000 / periods.length), end: 100 }],
@@ -116,8 +116,8 @@ export default function KuznetsTab() {
 
       <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8, marginBottom: 16 }}>
         {rows.length > 0
-          ? <div ref={ref} style={{ width: '100%', height: 380 }} />
-          : <div style={{ width: '100%', height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+          ? <div ref={ref} style={{ width: '70%', height: 460, margin: '0 auto' }} />
+          : <div style={{ width: '70%', height: 460, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
               {isLoading ? '加载中...' : '暂无数据'}
             </div>}
       </div>

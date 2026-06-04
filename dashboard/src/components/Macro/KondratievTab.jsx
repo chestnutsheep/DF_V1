@@ -35,12 +35,12 @@ export default function KondratievTab() {
       xAxis: {
         type: 'category',
         data: years.filter((_, i) => i % s === 0),
-        axisLabel: { color: '#A09888', fontSize: 7, interval: Math.max(1, Math.floor(years.length / 15 / s)) },
+        axisLabel: { color: '#E8E0D0', fontSize: 11, interval: Math.max(1, Math.floor(years.length / 15 / s)) },
         axisLine: { lineStyle: { color: 'rgba(212,168,83,0.12)' } },
       },
       yAxis: {
         type: 'value',
-        axisLabel: { color: '#A09888', fontSize: 8 },
+        axisLabel: { color: '#E8E0D0', fontSize: 11 },
         splitLine: { lineStyle: { color: 'rgba(212,168,83,0.08)', type: 'dashed' } },
       },
       dataZoom: [{ type: 'inside', start: Math.max(0, 100 - 5000 / years.length), end: 100 }],
@@ -87,8 +87,8 @@ export default function KondratievTab() {
 
       <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8, marginBottom: 16 }}>
         {data?.pca1?.length
-          ? <div ref={ref} style={{ width: '100%', height: 380 }} />
-          : <div style={{ width: '100%', height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+          ? <div ref={ref} style={{ width: '70%', height: 460, margin: '0 auto' }} />
+          : <div style={{ width: '70%', height: 460, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
               {isLoading ? '加载中...' : '暂无数据'}
             </div>}
       </div>
