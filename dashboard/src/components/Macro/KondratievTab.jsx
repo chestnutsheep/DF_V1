@@ -43,7 +43,7 @@ export default function KondratievTab() {
         axisLabel: { color: '#A09888', fontSize: 8 },
         splitLine: { lineStyle: { color: 'rgba(212,168,83,0.08)', type: 'dashed' } },
       },
-      dataZoom: [{ type: 'inside', start: 0, end: 100 }],
+      dataZoom: [{ type: 'inside', start: Math.max(0, 100 - 5000 / years.length), end: 100 }],
       series: [
         { name: 'PCA合成', type: 'line', data: pca1.filter((_, i) => i % s === 0), smooth: true,
           symbol: 'none', lineStyle: { width: 2, color: '#D4A853' } },

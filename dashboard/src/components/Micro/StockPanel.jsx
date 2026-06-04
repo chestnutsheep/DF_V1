@@ -80,7 +80,7 @@ export default function StockPanel() {
       if(p.length>6){dates.push(p[di]?.slice(5)||'');ohlc.push([+p[oi],+p[ci],+p[li],+p[hi]]);vol.push(+p[vi]);}
     });
     if (!dates.length) return null;
-    return { tooltip:{trigger:'axis',axisPointer:{type:'cross'}},
+    return { backgroundColor:'transparent', tooltip:{trigger:'axis',axisPointer:{type:'cross'}},
       legend:{data:['K线','成交量'],textStyle:{color:'#B0A898'},top:0},
       grid:[{left:'6%',right:'3%',bottom:'25%',height:'55%'},{left:'6%',right:'3%',top:'78%',height:'18%'}],
       xAxis:[{type:'category',data:dates,axisLabel:{color:'#B0A898',fontSize:9,rotate:30},gridIndex:0},{type:'category',data:dates,axisLabel:{show:false},gridIndex:1}],
@@ -117,6 +117,7 @@ export default function StockPanel() {
       parseFloat(f('销售毛利率(%)')||0),
     ];
     return {
+      backgroundColor:'transparent',
       tooltip:{trigger:'item'},
       legend:{data:[stockName,'同业均值'],textStyle:{color:'#B0A898'},bottom:0},
       radar:{indicator,radius:'60%',axisName:{color:'#B0A898'},splitArea:{areaStyle:{color:['rgba(212,168,83,0.02)','rgba(212,168,83,0.04)']}}},
@@ -135,6 +136,7 @@ export default function StockPanel() {
     const dates = fundRows.map(r=>r['日期']?.slice(5)||'').slice(-20);
     const vals = fundRows.map(r=>parseFloat(r['主力净流入-净额']||0)/1e8).slice(-20);
     return {
+      backgroundColor:'transparent',
       title:{text:'主力净流入(亿元)',textStyle:{color:'#B0A898',fontSize:12},left:'center'},
       grid:{left:'6%',right:'4%',bottom:'18%',top:'22%'},
       xAxis:{type:'category',data:dates,axisLabel:{color:'#B0A898',fontSize:9,rotate:30}},

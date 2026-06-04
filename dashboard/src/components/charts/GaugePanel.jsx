@@ -9,6 +9,7 @@ import ReactECharts from 'echarts-for-react';
 export default function GaugePanel({ data = [], height = 200 }) {
   const option = useMemo(() => {
     return {
+      backgroundColor: 'transparent',
       series: data.map((item, i) => ({
         type: 'gauge',
         center: [`${(i + 0.5) * (100 / Math.max(data.length, 1))}%`, '55%'],
@@ -25,10 +26,10 @@ export default function GaugePanel({ data = [], height = 200 }) {
         axisLabel: { show: false },
         pointer: { show: false },
         anchor: { show: false },
-        title: { show: true, offsetCenter: [0, '30%'], fontSize: 12, color: '#B0A898' },
+        title: { show: true, offsetCenter: [0, '25%'], fontSize: 14, color: '#B0A898' },
         detail: {
-          offsetCenter: [0, '50%'],
-          fontSize: 20,
+          offsetCenter: [0, '48%'],
+          fontSize: 24,
           fontWeight: 700,
           color: item.color || '#D4A853',
           formatter: (v) => v != null ? (typeof v === 'number' ? v.toFixed(2) : String(v)) : '--',

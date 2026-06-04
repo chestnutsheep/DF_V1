@@ -43,7 +43,20 @@ function renderChart(div, rows) {
     grid: { left: '3%', right: '3%', bottom: '16%', top: '3%', containLabel: true },
     xAxis: {
       type: 'category', data: periods,
-      axisLabel: { color: '#A09888', fontSize: 7, interval: Math.max(1, Math.floor(periods.length / 15)) },
+      axisLabel: {
+        color: '#A09888', fontSize: 7,
+        formatter: (v) => {
+          const m = v?.substring(4,6);
+          if (m === '01') return `{year|${v.substring(0,4)}}`;
+          if (['04','07','10'].includes(m)) return `{qtr|Q${Math.ceil(parseInt(m)/3)}}`;
+          return `{tick||}`;
+        },
+        rich: {
+          year: { fontSize: 10, fontWeight: 700, color: '#E8E0D0' },
+          qtr: { fontSize: 8, color: '#B0A898' },
+          tick: { fontSize: 7, color: '#706858' },
+        },
+      },
       axisLine: { lineStyle: { color: 'rgba(212,168,83,0.12)' } },
     },
     yAxis: {
@@ -51,7 +64,7 @@ function renderChart(div, rows) {
       axisLabel: { color: '#A09888', fontSize: 8 },
       splitLine: { lineStyle: { color: 'rgba(212,168,83,0.08)', type: 'dashed' } },
     },
-    dataZoom: [{ type: 'inside', start: 0, end: 100 }],
+    dataZoom: [{ type: 'inside', start: Math.max(0, 100 - 6000 / periods.length), end: 100 }],
     series: [
       { name: '房价指数%', type: 'line', data: price, smooth: true, symbol: 'circle', symbolSize: 2,
         lineStyle: { width: 1.5, color: '#D4A853' } },

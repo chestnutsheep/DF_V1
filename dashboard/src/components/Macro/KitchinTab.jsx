@@ -44,7 +44,21 @@ function renderChart(div, rows) {
     grid: { left: '3%', right: '3%', bottom: '16%', top: '3%', containLabel: true },
     xAxis: {
       type: 'category', data: periods,
-      axisLabel: { color: key('--text-muted'), fontSize: 7, interval: Math.max(1, Math.floor(periods.length / 15)) },
+      axisLabel: {
+        color: key('--text-muted'),
+        fontSize: 7,
+        formatter: (v) => {
+          const m = v?.substring(4,6);
+          if (m === '01') return `{year|${v.substring(0,4)}}`;
+          if (['04','07','10'].includes(m)) return `{qtr|Q${Math.ceil(parseInt(m)/3)}}`;
+          return `{tick||}`;
+        },
+        rich: {
+          year: { fontSize: 10, fontWeight: 700, color: key('--text-primary') },
+          qtr: { fontSize: 8, color: key('--text-secondary') },
+          tick: { fontSize: 7, color: key('--text-muted') },
+        },
+      },
       axisLine: { lineStyle: { color: key('--border-subtle') } },
     },
     yAxis: {
@@ -52,7 +66,7 @@ function renderChart(div, rows) {
       axisLabel: { color: key('--text-muted'), fontSize: 8 },
       splitLine: { lineStyle: { color: key('--border-subtle'), type: 'dashed' } },
     },
-    dataZoom: [{ type: 'inside', start: 0, end: 100 }],
+    dataZoom: [{ type: 'inside', start: Math.max(0, 100 - 6000 / periods.length), end: 100 }],
     series: [
       { name: '需求(工业增加值%)', type: 'line', data: demand, smooth: true, symbol: 'circle', symbolSize: 2,
         lineStyle: { width: 1.5, color: '#58a6ff' },
