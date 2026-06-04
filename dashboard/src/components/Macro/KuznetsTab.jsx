@@ -110,7 +110,7 @@ export default function KuznetsTab() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16, marginBottom: 16 }}>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8 }}>
+        <div style={{ background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8 }}>
           <GaugePanel data={[{
             name: '房价指数',
             value: latest?.house_price_yoy ?? 0,

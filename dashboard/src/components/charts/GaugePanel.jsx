@@ -25,10 +25,10 @@ export default function GaugePanel({ data = [], height = 200 }) {
         axisLabel: { show: false },
         pointer: { show: false },
         anchor: { show: false },
-        title: { show: true, offsetCenter: [0, '40%'], fontSize: 11, color: '#B0A898' },
+        title: { show: true, offsetCenter: [0, '30%'], fontSize: 12, color: '#B0A898' },
         detail: {
-          offsetCenter: [0, '55%'],
-          fontSize: 18,
+          offsetCenter: [0, '50%'],
+          fontSize: 20,
           fontWeight: 700,
           color: item.color || '#D4A853',
           formatter: (v) => v != null ? (typeof v === 'number' ? v.toFixed(2) : String(v)) : '--',

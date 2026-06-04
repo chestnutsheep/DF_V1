@@ -127,7 +127,7 @@ export default function JuglarTab() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8 }}>
+        <div style={{ background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8 }}>
           <GaugePanel data={[{
             name: '综合z值',
             value: latest?.comp_z ?? 0,
