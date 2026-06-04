@@ -38,8 +38,6 @@ export default function MesoTab() {
 
   return (
     <div style={{ padding: '28px 0' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>🏭 中观行业</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 24 }}>同花顺90行业 · 申万31一级</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
         {charts.map(({ name, data }, i) => {

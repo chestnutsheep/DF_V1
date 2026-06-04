@@ -21,8 +21,6 @@ export default function MacroLayout() {
 
   return (
     <div style={{ padding: '28px 0' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>🌐 宏观经济</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 24 }}>基钦 · 朱格拉 · 库兹涅茨 · 康波</p>
 
       {/* 宏观快照 */}
       <MacroSnapshot />

@@ -85,6 +85,7 @@ export default function StockPanel() {
       grid:[{left:'6%',right:'3%',bottom:'25%',height:'55%'},{left:'6%',right:'3%',top:'78%',height:'18%'}],
       xAxis:[{type:'category',data:dates,axisLabel:{color:'#B0A898',fontSize:9,rotate:30},gridIndex:0},{type:'category',data:dates,axisLabel:{show:false},gridIndex:1}],
       yAxis:[{type:'value',scale:true,axisLabel:{color:'#B0A898',fontSize:10},splitLine:{lineStyle:{color:'rgba(212,168,83,0.08)'}},gridIndex:0},{type:'value',scale:true,axisLabel:{color:'#B0A898',fontSize:10},gridIndex:1}],
+      dataZoom:[{type:'inside',start:50,end:100},{type:'slider',start:50,end:100,height:20,bottom:0}],
       series:[{name:'K线',type:'candlestick',data:ohlc,itemStyle:{color:MONET[3],color0:MONET[4],borderColor:MONET[3],borderColor0:MONET[4]}},
               {name:'成交量',type:'bar',data:vol,xAxisIndex:1,yAxisIndex:1,itemStyle:{color:MONET[0]+'60'}}]};
   })() : null;

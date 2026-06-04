@@ -62,8 +62,6 @@ export default function GlobalTab() {
 
   return (
     <div style={{ padding: '28px 0' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>🌍 国际数据</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 24 }}>FRED · World Bank</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {[makeOpt(gdp, '全球GDP增长率', '#f85149'), makeOpt(pop, '全球总人口', '#3fb950')].map((o, i) => (

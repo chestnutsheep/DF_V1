@@ -16,8 +16,6 @@ export default function MicroTab() {
 
   return (
     <div style={{ padding: '28px 0' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>🔬 微观</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 24 }}>个股 · 基金 · 期货 · 债券 · 期权</p>
       <ActiveComp />
     </div>
   );
