@@ -4,9 +4,6 @@ import { useContext } from 'react';
 import { useAppStore } from '../store';
 import { mcp } from '../services/mcp';
 
-const themes = ['matin', 'crepuscule', 'eclat', 'reve', 'lumiere'];
-const themeColors = ['#1A2F2A','#0F1A2E','#1A2E1A','#1E1A2E','#1A2A3A'];
-
 const SUB_NAV = {
   policy: [
     { label: '政策统计', icon: '📊' },
@@ -44,9 +41,6 @@ function SidebarContent() {
   const s = useContext(SidebarContext);
   const collapsed = s?.collapsed ?? false;
   const activeTab = useAppStore((s) => s.activeTab);
-  const setActiveTab = useAppStore((s) => s.setActiveTab);
-  const theme = useAppStore((s) => s.theme);
-  const setTheme = useAppStore((s) => s.setTheme);
   const setActiveMicroSub = useAppStore((s) => s.setActiveMicroSub);
   const [phase, setPhase] = useState('');
   const [policyCnt, setPolicyCnt] = useState('');
@@ -130,20 +124,7 @@ function SidebarContent() {
         ))}
       </Menu>
 
-      <div style={{ padding: collapsed ? '12px 10px 6px' : '16px 20px 6px', fontSize:12,fontWeight:700,letterSpacing:1,color:'var(--text-secondary)', textAlign: collapsed ? 'center' : 'left' }}>
-        {collapsed ? '◈' : '◈ 主题切换'}
-      </div>
-      <div style={{ display:'flex', gap:8, padding: collapsed ? '8px 10px' : '8px 20px', justifyContent: collapsed ? 'center' : 'flex-start', flexWrap:'wrap' }}>
-        {themes.map((t, i) => (
-          <div key={t} onClick={() => setTheme(t)}
-            style={{
-              width: collapsed ? 16 : 24, height: collapsed ? 16 : 24, borderRadius:'50%', cursor:'pointer',
-              border: theme===t ? '2px solid var(--accent-gold)' : '2px solid transparent',
-              background: themeColors[i],
-            }}
-          />
-        ))}
-      </div>
+      {/* 主题切换由 TopTabs 标签自动触发，不暴露手动切换 */}
     </Sidebar>
   );
 }
