@@ -4,6 +4,8 @@ import { LineChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, DataZoomComponent, LegendComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { useQueryMCPJSON } from '../../hooks/useQueryMCP';
+import DataGrid from '../charts/DataGrid';
+import { KONDRATIEV_METRICS } from '../../configs/kondratiev';
 
 echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, LegendComponent, CanvasRenderer]);
 
@@ -91,20 +93,16 @@ export default function KondratievTab() {
             </div>}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: 16 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>主周期 (年)</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{data?.dominant_period?.toFixed(1) ?? '-'}</div>
-        </div>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: 16 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>PCA 方差比</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{(data?.pca_variance_ratio * 100)?.toFixed(1) ?? '-'}%</div>
-        </div>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: 16 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>使用指标数</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{data?.indicators_used ?? '-'}</div>
-        </div>
-      </div>
+      <DataGrid
+        config={KONDRATIEV_METRICS}
+        latest={{
+          dominant_period: data?.dominant_period,
+          pca_variance_ratio: data?.pca_variance_ratio != null ? data.pca_variance_ratio * 100 : null,
+          confidence: data?.confidence != null ? data.confidence * 100 : null,
+          indicators_used: data?.indicators_used,
+        }}
+        columns={3}
+      />
     </div>
   );
 }
