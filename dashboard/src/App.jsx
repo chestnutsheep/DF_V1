@@ -49,7 +49,7 @@ function AppInner() {
       <Sidebar />
       <div className="mn" style={{ marginLeft: 'var(--nav-width)', position: 'relative', zIndex: 2, minHeight: '100vh' }}>
         <TopTabs />
-        <main id="main-panel" style={{ padding: '0 0 20px 0' }}>
+        <main id="main-panel" style={{ maxWidth: '80%', margin: '0 auto', padding: '0 0 20px 0' }}>
           <Panel />
         </main>
       </div>

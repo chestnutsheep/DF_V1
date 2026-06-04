@@ -37,7 +37,7 @@ export default function MesoTab() {
   }));
 
   return (
-    <div style={{ padding: '28px 32px', maxWidth: 'calc(100% - 320px)' }}>
+    <div style={{ padding: '28px 0' }}>
       <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>🏭 中观行业</h2>
       <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 24 }}>同花顺90行业 · 申万31一级</p>
 

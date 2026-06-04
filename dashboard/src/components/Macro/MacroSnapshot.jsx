@@ -29,8 +29,7 @@ export default function MacroSnapshot() {
       gridTemplateColumns: 'repeat(5, 1fr)',
       gap: 16,
       marginTop: 20,
-      padding: '0 32px',
-      maxWidth: 'calc(100% - 320px)',
+      paddingLeft: 0,
     }}>
       {items.map((c, i) => (
         <div key={i} className="snapshot-card" style={{

@@ -61,7 +61,7 @@ export default function GlobalTab() {
   ];
 
   return (
-    <div style={{ padding: '28px 32px', maxWidth: 'calc(100% - 320px)' }}>
+    <div style={{ padding: '28px 0' }}>
       <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>🌍 国际数据</h2>
       <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 24 }}>FRED · World Bank</p>
 
