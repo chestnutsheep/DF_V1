@@ -5,6 +5,8 @@ import { GridComponent, TooltipComponent, DataZoomComponent, LegendComponent, Ma
 import { CanvasRenderer } from 'echarts/renderers';
 import { useQueryMCPJSON } from '../../hooks/useQueryMCP';
 import GaugePanel from '../charts/GaugePanel';
+import DataGrid from '../charts/DataGrid';
+import { JUGLAR_METRICS } from '../../configs/juglar';
 
 echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, LegendComponent, MarkAreaComponent, CanvasRenderer]);
 
@@ -124,7 +126,7 @@ export default function JuglarTab() {
             </div>}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
         <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8 }}>
           <GaugePanel data={[{
             name: '综合z值',
@@ -133,16 +135,7 @@ export default function JuglarTab() {
             color: latest?.comp_z > 0 ? '#3fb950' : '#f85149',
           }]} height={180} />
         </div>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: 16 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>固定投资%</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{latest?.fix_inv_yoy ?? '-'}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>同比</div>
-        </div>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: 16 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>产能利用率</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{latest?.capacity_util ?? '-'}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>{latest?.manufacturing_yoy ? `制造业 ${latest.manufacturing_yoy}%` : '—'}</div>
-        </div>
+        <DataGrid config={JUGLAR_METRICS} latest={latest} prev={rows.length >= 2 ? rows[rows.length - 2] : null} columns={3} />
       </div>
     </div>
   );

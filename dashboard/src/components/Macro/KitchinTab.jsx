@@ -4,6 +4,8 @@ import { LineChart, CandlestickChart, BarChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, DataZoomComponent, LegendComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { useQueryMCPJSON } from '../../hooks/useQueryMCP';
+import DataGrid from '../charts/DataGrid';
+import { KITCHIN_METRICS } from '../../configs/kitchin';
 
 echarts.use([LineChart, CandlestickChart, BarChart, GridComponent, TooltipComponent, DataZoomComponent, LegendComponent, CanvasRenderer]);
 
@@ -111,17 +113,13 @@ export default function KitchinTab() {
             </div>}
       </div>
 
-      {/* 补充卡片 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: 16 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>PMI</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{latest?.pmi ?? '-'}</div>
-        </div>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: 16 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>M2同比%</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{latest?.m2_yoy ?? '-'}</div>
-        </div>
-      </div>
+      {/* 指标卡网格（数据驱动） */}
+      <DataGrid
+        config={KITCHIN_METRICS}
+        latest={latest}
+        prev={rows.length >= 2 ? rows[rows.length - 2] : null}
+        columns={3}
+      />
     </div>
   );
 }

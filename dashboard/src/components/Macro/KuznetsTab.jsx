@@ -5,6 +5,8 @@ import { GridComponent, TooltipComponent, DataZoomComponent, LegendComponent } f
 import { CanvasRenderer } from 'echarts/renderers';
 import { useQueryMCPJSON } from '../../hooks/useQueryMCP';
 import GaugePanel from '../charts/GaugePanel';
+import DataGrid from '../charts/DataGrid';
+import { KUZNETS_METRICS } from '../../configs/kuznets';
 
 echarts.use([LineChart, BarChart, GridComponent, TooltipComponent, DataZoomComponent, LegendComponent, CanvasRenderer]);
 
@@ -107,7 +109,7 @@ export default function KuznetsTab() {
             </div>}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16, marginBottom: 16 }}>
         <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8 }}>
           <GaugePanel data={[{
             name: '房价指数',
@@ -116,16 +118,7 @@ export default function KuznetsTab() {
             color: '#58a6ff',
           }]} height={180} />
         </div>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: 16 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>价格指数</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{latest?.house_price_yoy ?? '-'}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>同比</div>
-        </div>
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: 16 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>销售面积%</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{latest?.sales_yoy ?? '-'}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>同比</div>
-        </div>
+        <DataGrid config={KUZNETS_METRICS} latest={latest} prev={rows.length >= 2 ? rows[rows.length - 2] : null} columns={3} />
       </div>
     </div>
   );
