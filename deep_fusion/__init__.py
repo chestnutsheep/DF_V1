@@ -34,6 +34,7 @@ from .tools import (
     precious_metals,
     stock_reports,
     stocks,
+    tech_indicators,
 )
 
 __all__ = [

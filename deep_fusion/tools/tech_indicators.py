@@ -12,14 +12,13 @@ from deep_fusion.shared.indicators import add_technical_indicators
 
 
 def fetch_kline(symbol: str, period: str = "daily") -> pd.DataFrame | None:
-    """从 akshare 获取股票 K 线并统一列名。"""
+    """从 akshare 获取股票 K 线（同 individual_hist 数据源）。"""
     try:
-        if period == "daily":
-            df = ak_cache(ak.stock_zh_a_hist, symbol=symbol, period="daily", ttl=300)
-        elif period == "weekly":
-            df = ak_cache(ak.stock_zh_a_hist, symbol=symbol, period="weekly", ttl=300)
-        else:
-            df = ak_cache(ak.stock_zh_a_hist, symbol=symbol, period="daily", ttl=300)
+        df = ak_cache(
+            ak.stock_zh_a_hist, symbol=symbol, period=period,
+            start_date="19700101", end_date="22220101",
+            ttl=3600,
+        )
         if df is None or df.empty:
             return None
         df = df.rename(columns={
@@ -28,7 +27,9 @@ def fetch_kline(symbol: str, period: str = "daily") -> pd.DataFrame | None:
         })
         df = df.sort_values("trade_date")
         return df
-    except Exception:
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("fetch_kline failed for %s: %s", symbol, e)
         return None
 
 
