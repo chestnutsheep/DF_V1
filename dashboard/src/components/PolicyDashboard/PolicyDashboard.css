@@ -4,7 +4,7 @@
   --border: var(--border-subtle, rgba(212,168,83,0.12));
   --primary: var(--accent-gold, #D4A853);
   --secondary: var(--accent-rose, #C49BA5);
-  --bg: var(--bg-deep, #1A2F2A);
+  --bg: rgb(var(--bg-r, 26), var(--bg-g, 47), var(--bg-b, 42));
   --text: var(--text-primary, #E8E0D0);
   --text-muted: var(--text-muted, #7A7266);
   --radius: var(--radius-sm, 8px);
