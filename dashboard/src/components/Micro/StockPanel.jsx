@@ -73,7 +73,7 @@ export default function StockPanel() {
     if (!m) return null;
     const lines = m[1].trim().split('\n'); if (lines.length < 2) return null;
     const h = lines[0].split(',');
-    const di=h.indexOf('日期'), oi=h.indexOf('开盘'), ci=h.indexOf('收盘'), hi=h.indexOf('最高'), li=h.indexOf('最低'), vi=h.indexOf('成交量');
+    const di=h.indexOf('日期')>=0?h.indexOf('日期'):h.indexOf('date'), oi=h.indexOf('开盘')>=0?h.indexOf('开盘'):h.indexOf('open'), ci=h.indexOf('收盘')>=0?h.indexOf('收盘'):h.indexOf('close'), hi=h.indexOf('最高')>=0?h.indexOf('最高'):h.indexOf('high'), li=h.indexOf('最低')>=0?h.indexOf('最低'):h.indexOf('low'), vi=h.indexOf('成交量')>=0?h.indexOf('成交量'):h.indexOf('volume');
     const dates=[], ohlc=[], vol=[];
     lines.slice(1).reverse().forEach(l => {
       const p=l.split(',');

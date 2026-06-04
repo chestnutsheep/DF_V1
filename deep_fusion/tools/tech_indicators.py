@@ -12,25 +12,39 @@ from deep_fusion.shared.indicators import add_technical_indicators
 
 
 def fetch_kline(symbol: str, period: str = "daily") -> pd.DataFrame | None:
-    """从 akshare 获取股票 K 线（同 individual_hist 数据源）。"""
+    """获取股票 K 线，优先腾讯源 → akshare 东方财富回退。"""
+    market = "sh" if symbol.startswith("6") else "sz"
+    try:
+        # 腾讯源（稳定）
+        df = ak_cache(ak.stock_zh_a_daily, symbol=f"{market}{symbol}", adjust="qfq", ttl=3600)
+        if df is not None and not df.empty:
+            df = df.rename(columns={
+                "date": "trade_date", "open": "open", "close": "close",
+                "high": "high", "low": "low", "volume": "volume",
+            })
+            df["trade_date"] = pd.to_datetime(df["trade_date"]).dt.strftime("%Y%m%d")
+            df = df.sort_values("trade_date")
+            return df
+    except Exception:
+        pass
+
+    # 回退：东方财富源（偶尔被反爬）
     try:
         df = ak_cache(
             ak.stock_zh_a_hist, symbol=symbol, period=period,
-            start_date="19700101", end_date="22220101",
-            ttl=3600,
+            start_date="19700101", end_date="22220101", ttl=3600,
         )
-        if df is None or df.empty:
-            return None
-        df = df.rename(columns={
-            "日期": "trade_date", "开盘": "open", "收盘": "close",
-            "最高": "high", "最低": "low", "成交量": "volume",
-        })
-        df = df.sort_values("trade_date")
-        return df
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning("fetch_kline failed for %s: %s", symbol, e)
-        return None
+        if df is not None and not df.empty:
+            df = df.rename(columns={
+                "日期": "trade_date", "开盘": "open", "收盘": "close",
+                "最高": "high", "最低": "low", "成交量": "volume",
+            })
+            df = df.sort_values("trade_date")
+            return df
+    except Exception:
+        pass
+
+    return None
 
 
 @mcp.tool(
@@ -48,12 +62,10 @@ def stock_tech_indicators(symbol: str = "600519", period: str = "daily") -> str:
         high_col="high", volume_col="volume",
     )
 
-    # 只返回最新一期
     latest = df.tail(1)
     if latest.empty:
         return json.dumps({"error": "计算后无数据"})
 
-    # 选主要指标
     cols = [
         "trade_date", "close",
         "MACD", "DIF", "DEA",

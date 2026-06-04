@@ -110,13 +110,13 @@ describe('数据获取', () => {
   it('K线数据OHLC齐全', async () => {
     const text = await mcpCall('individual_hist', { symbol: '600519', period: 'daily' });
     if (text.includes('未获取到')) return;
-    const csv = extractCSV(text, 'K线数据');
+    const csv = extractCSV(text, '=== K线数据 ===');
     const rows = parseCSV(csv);
     expect(rows.length).toBeGreaterThanOrEqual(2);
-    expect(rows[0]['开盘']).toBeTruthy();
-    expect(rows[0]['收盘']).toBeTruthy();
-    expect(rows[0]['最高']).toBeTruthy();
-    expect(rows[0]['最低']).toBeTruthy();
+    expect(rows[0]['开盘'] || rows[0]['open']).toBeTruthy();
+    expect(rows[0]['收盘'] || rows[0]['close']).toBeTruthy();
+    expect(rows[0]['最高'] || rows[0]['high']).toBeTruthy();
+    expect(rows[0]['最低'] || rows[0]['low']).toBeTruthy();
   });
 });
 

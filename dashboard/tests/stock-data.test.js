@@ -75,10 +75,10 @@ describe('K线数据', () => {
       const text = await mcpCall('individual_hist', { symbol: s.code, period: 'daily' });
       // 如果 akshare 接口不可用，跳过而非失败（网络环境问题）
       if (text.includes('未获取到')) return;
-      const csv = extractCSV(text, 'K线数据');
+      const csv = extractCSV(text, '=== K线数据 ===');
       const rows = parseCSV(csv);
       expect(rows.length).toBeGreaterThan(0);
-      expect(rows[0]['收盘']).toBeTruthy();
+      expect(rows[0]['收盘'] || rows[0]['close']).toBeTruthy();
     }, TO);
   }
 });
