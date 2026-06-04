@@ -122,7 +122,8 @@ body::before {
   inset: 0;
   background:
     linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-deep) 22%, transparent 55%),
-    var(--bg-img, url('../assets/matin.JPEG')) bottom center / 100% auto no-repeat;
+    var(--bg-img, url('../assets/matin.JPEG')) center center / cover no-repeat;
+  opacity: 0.20;
   z-index: -3;
   pointer-events: none;
 }

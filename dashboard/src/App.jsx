@@ -32,10 +32,10 @@ function AppInner() {
   const setStoreTheme = useAppStore((s) => s.setTheme);
   const { theme, setTheme } = useTheme();
 
-  // store 主题 → next-themes（切换标签时触发）
+  // store 主题 → next-themes（切换标签时强制同步）
   useEffect(() => {
-    if (storeTheme && storeTheme !== theme) setTheme(storeTheme);
-  }, [storeTheme]);
+    if (storeTheme) setTheme(storeTheme);
+  }, [storeTheme, activeTab]);
 
   // TopTabs 切换主题时同步到 store
   useEffect(() => {
