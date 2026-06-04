@@ -37,14 +37,14 @@ const TOP_IND = ['银行','钢铁','房地产','白酒'];
 
 export default function MesoTab() {
   const [tree, setTree] = useState('');
-  useEffect(() => { mcp.industry.sw_tree().then(setTree).catch(() => {}); }, []);
+  useEffect(() => { mcp.industry.swTree().then(setTree).catch(() => {}); }, []);
 
   const charts = TOP_IND.map(name => ({
     name,
     data: useCSV(() => mcp.industry.daily(name, 120), [name]),
   }));
 
-  const fundFlow = useQueryMCPCSV('industry_capital_flow', { limit: 8 });
+  const fundFlow = useQueryMCPCSV('industry_capital_flow', { limit: 8 }); // 或用 mcp.industry.fundFlow(8)
 
   return (
     <div style={{ padding: '28px 32px', maxWidth: 'calc(100% - 320px)' }}>

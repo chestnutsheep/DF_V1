@@ -75,6 +75,9 @@ export const mcp = {
   industry: {
     daily: (industry = '', limit = 20) =>
       request('industry_daily_query', { industry, limit }),
+    swTree: () => request('industry_sw_tree'),
+    fundFlow: (limit = 20) =>
+      request('industry_capital_flow', { limit }),
   },
 
   spot: {
