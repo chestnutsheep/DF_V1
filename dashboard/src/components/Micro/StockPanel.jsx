@@ -23,7 +23,7 @@ function skipMeta(text) {
 function Block({title, loading, children, wide}) {
   return (
     <div className="cb" style={{
-      background: 'var(--bg-panel)', backdropFilter: 'blur(12px)',
+      background: 'transparent',
       border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)',
       padding: 20, marginBottom: 16, gridColumn: wide ? '1/-1' : undefined,
     }}>
@@ -168,7 +168,7 @@ export default function StockPanel() {
 
       {/* ── 三列财务卡 ── */}
       <div className="f5d" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
-        <div className="f5" style={{background:'var(--bg-panel)',backdropFilter:'blur(12px)',border:'1px solid var(--border-subtle)',borderRadius:'var(--radius-lg)',padding:20}}>
+        <div className="f5" style={{background:'transparent',border:'1px solid var(--border-subtle)',borderRadius:'var(--radius-lg)',padding:20}}>
           <div className="h" style={{fontSize:13,fontWeight:600,marginBottom:12,color:'var(--text-secondary)'}}>📊 财务指标</div>
           <ul className="items" style={{listStyle:'none',padding:0}}>
             <Item label="营收增长率" value={`${f('主营业务收入增长率(%)')}%`} color={+f('主营业务收入增长率(%)')>=0?MONET[3]:MONET[4]} />
@@ -178,7 +178,7 @@ export default function StockPanel() {
             <Item label="净利率" value={`${f('销售净利率(%)')}%`} />
           </ul>
         </div>
-        <div className="f5" style={{background:'var(--bg-panel)',backdropFilter:'blur(12px)',border:'1px solid var(--border-subtle)',borderRadius:'var(--radius-lg)',padding:20}}>
+        <div className="f5" style={{background:'transparent',border:'1px solid var(--border-subtle)',borderRadius:'var(--radius-lg)',padding:20}}>
           <div className="h" style={{fontSize:13,fontWeight:600,marginBottom:12,color:'var(--text-secondary)'}}>💰 估值</div>
           <ul className="items" style={{listStyle:'none',padding:0}}>
             <Item label="每股收益" value={`${f('摊薄每股收益(元)')}元`} />
@@ -188,7 +188,7 @@ export default function StockPanel() {
             <Item label="PB" value={myVal?.['市净率-MRQ']||'—'} />
           </ul>
         </div>
-        <div className="f5" style={{background:'var(--bg-panel)',backdropFilter:'blur(12px)',border:'1px solid var(--border-subtle)',borderRadius:'var(--radius-lg)',padding:20}}>
+        <div className="f5" style={{background:'transparent',border:'1px solid var(--border-subtle)',borderRadius:'var(--radius-lg)',padding:20}}>
           <div className="h" style={{fontSize:13,fontWeight:600,marginBottom:12,color:'var(--text-secondary)'}}>🏆 质量</div>
           <ul className="items" style={{listStyle:'none',padding:0}}>
             <Item label="杜邦ROE(24A)" value={`${myDupont?.['ROE-24A']||f('净资产收益率(%)')}%`} />
