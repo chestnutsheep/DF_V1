@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { useMCP } from '../../hooks/useMCP';
+import { useQueryMCP } from '../../hooks/useQueryMCP';
 import { mcp } from '../../services/mcp';
 
 const MONET = ['#d2991d','#a371f7','#58a6ff','#f85149','#3fb950','#db6d28','#7b5ea7','#c49ba5'];
@@ -10,11 +10,11 @@ export default function StockPanel() {
   const [symbol, setSymbol] = useState('600519');
   const [stockName, setStockName] = useState('贵州茅台');
 
-  const { data: hist } = useMCP('individual_hist', { symbol, period: 'daily' });
-  const { data: fin } = useMCP('financial_indicators', { symbol });
-  const { data: peer } = useMCP('peer_comparison', { symbol });
-  const { data: fund } = useMCP('capital_tracking', { symbol });
-  const { data: info } = useMCP('individual_info', { symbol });
+  const { data: hist } = useQueryMCP('individual_hist', { symbol, period: 'daily' });
+  const { data: fin } = useQueryMCP('financial_indicators', { symbol });
+  const { data: peer } = useQueryMCP('peer_comparison', { symbol });
+  const { data: fund } = useQueryMCP('capital_tracking', { symbol });
+  const { data: info } = useQueryMCP('individual_info', { symbol });
 
   function doSearch() {
     if (!keyword.trim()) return;

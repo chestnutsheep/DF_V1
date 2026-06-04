@@ -1,17 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { mcp } from '../../services/mcp';
-import { useQueryMCPCSV } from '../../hooks/useQueryMCP';
+import { useQueryMCP, useQueryMCPCSV } from '../../hooks/useQueryMCP';
 
 const MONET = ['#d2991d','#a371f7','#58a6ff','#f85149','#3fb950','#db6d28','#7b5ea7','#c49ba5'];
 
-function useCSV(fn, deps = []) {
-  const [d, setD] = useState(null);
-  useEffect(() => { fn().then(setD).catch(() => {}); }, deps);
-  return d;
-}
-
-function lineChart(csv, title, color, legend) {
+function lineChart(csv, title, color) {
   if (!csv) return null;
   const rows = Array.isArray(csv) ? csv : (() => {
     const l = csv.trim().split('\n');
@@ -36,25 +28,22 @@ function lineChart(csv, title, color, legend) {
 const TOP_IND = ['银行','钢铁','房地产','白酒'];
 
 export default function MesoTab() {
-  const [tree, setTree] = useState('');
-  useEffect(() => { mcp.industry.swTree().then(setTree).catch(() => {}); }, []);
+  const tree = useQueryMCP('industry_sw_tree');
+  const fundFlow = useQueryMCPCSV('industry_capital_flow', { limit: 8 });
 
   const charts = TOP_IND.map(name => ({
     name,
-    data: useCSV(() => mcp.industry.daily(name, 120), [name]),
+    data: useQueryMCP('industry_daily_query', { industry: name, limit: 120 }),
   }));
-
-  const fundFlow = useQueryMCPCSV('industry_capital_flow', { limit: 8 }); // 或用 mcp.industry.fundFlow(8)
 
   return (
     <div style={{ padding: '28px 32px', maxWidth: 'calc(100% - 320px)' }}>
       <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>🏭 中观行业</h2>
       <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 24 }}>同花顺90行业 · 申万31一级</p>
 
-      {/* 行业走势 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
         {charts.map(({ name, data }, i) => {
-          const o = lineChart(data, name, MONET[i], null);
+          const o = lineChart(data.data, name, MONET[i]);
           return (
             <div key={name} style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 16 }}>
               {o ? <ReactECharts option={o} style={{ height: 220, width: '100%' }} theme="dark" notMerge />
@@ -64,7 +53,6 @@ export default function MesoTab() {
         })}
       </div>
 
-      {/* 行业资金流排行 */}
       <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: 20 }}>
         <div style={{ padding: '16px 20px 8px', fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)' }}>📊 行业资金流排行</div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -87,10 +75,11 @@ export default function MesoTab() {
         </table>
       </div>
 
-      {/* 申万行业树 */}
       <details style={{ marginTop: 12 }}>
         <summary style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', padding: '8px 0' }}>🏗️ 申万三级行业树</summary>
-        <pre style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6, maxHeight: 400, overflow: 'auto', padding: 12, background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius)' }}>{tree.slice(0, 2000)}{tree.length > 2000 ? '\n... (截断)' : ''}</pre>
+        <pre style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6, maxHeight: 400, overflow: 'auto', padding: 12, background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius)' }}>
+          {tree.data ? (tree.data.length > 2000 ? tree.data.slice(0, 2000) + '\n... (截断)' : tree.data) : '加载中...'}
+        </pre>
       </details>
     </div>
   );
