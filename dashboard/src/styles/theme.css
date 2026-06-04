@@ -122,12 +122,11 @@ body::before {
   inset: 0;
   background:
     linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-deep) 22%, transparent 55%),
-    var(--bg-img, url('../assets/matin.JPEG')) center center / contain no-repeat;
-  opacity: 0.12;
+    var(--bg-img, url('../assets/matin.JPEG')) bottom center / 100% auto no-repeat;
   z-index: -3;
   pointer-events: none;
 }
-/* 背景图已迁移到 --bg-img 变量，在 [data-theme="..."] 各主题中设置 */
+
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
