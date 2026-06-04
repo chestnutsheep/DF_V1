@@ -18,11 +18,42 @@ async function request(method, params = {}) {
     throw new Error(err?.error || `${resp.status} ${resp.statusText}`);
   }
   const json = await resp.json();
+  if (!json?.ok) throw new Error(json?.error || 'API error');
   return json?.data ?? '';
+}
+
+/** 跳过 === 标题行和空行，取 CSV 表头行 */
+function trimMeta(lines) {
+  const start = lines.findIndex(l => l && !l.startsWith('===') && !l.startsWith('共'));
+  return start >= 0 ? lines.slice(start) : lines;
 }
 
 export const mcp = {
   call: request,
+
+  /** 调用并解析 JSON */
+  callJSON: async (tool, args = {}) => {
+    try {
+      const text = await request(tool, args);
+      if (!text) return null;
+      return JSON.parse(text);
+    } catch { return null; }
+  },
+
+  /** 调用并解析 CSV → 对象数组 */
+  callCSV: async (tool, args = {}) => {
+    const text = await request(tool, args);
+    if (!text) return [];
+    const lines = trimMeta(text.trim().split('\n'));
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.trim());
+    return lines.slice(1).map(line => {
+      const vals = line.split(',').map(v => v.trim());
+      const row = {};
+      headers.forEach((h, i) => { row[h] = vals[i] ?? ''; });
+      return row;
+    });
+  },
 
   policy: {
     collect: (pages = 2) => request('policy_collect', { max_pages: pages }),

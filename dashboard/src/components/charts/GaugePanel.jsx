@@ -1,11 +1,5 @@
 import { useMemo } from 'react';
-import ReactEChartsCore from 'echarts-for-react/lib/core';
-import * as echarts from 'echarts/core';
-import { GaugeChart } from 'echarts/charts';
-import { TooltipComponent, TitleComponent } from 'echarts/components';
-import { CanvasRenderer } from 'echarts/renderers';
-
-echarts.use([GaugeChart, TooltipComponent, TitleComponent, CanvasRenderer]);
+import ReactECharts from 'echarts-for-react';
 
 /**
  * GaugePanel — 仪表盘组件，适合展示当前相位/数值。
@@ -37,18 +31,18 @@ export default function GaugePanel({ data = [], height = 200 }) {
           fontSize: 18,
           fontWeight: 700,
           color: item.color || '#D4A853',
-          formatter: (v) => typeof v === 'number' ? v.toFixed(2) : String(v),
+          formatter: (v) => v != null ? (typeof v === 'number' ? v.toFixed(2) : String(v)) : '--',
         },
-        data: [{ value: item.value, name: item.name }],
+        data: [{ value: item.value ?? 0, name: item.name }],
       })),
     };
   }, [data]);
 
   return (
-    <ReactEChartsCore
-      echarts={echarts}
+    <ReactECharts
       option={option}
       style={{ height, width: '100%' }}
+      theme="dark"
       notMerge
     />
   );

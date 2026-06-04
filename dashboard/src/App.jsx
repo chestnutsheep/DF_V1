@@ -1,10 +1,14 @@
 import { ThemeProvider, useTheme } from 'next-themes';
 import { ProSidebarProvider } from 'react-pro-sidebar';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 2, staleTime: 30_000 } },
+});
 import Sidebar from './components/Sidebar';
 import TopTabs from './components/TopTabs';
-import MacroTab from './components/Macro/MacroTab';
-import MacroSnapshot from './components/Macro/MacroSnapshot';
+import MacroLayout from './components/Macro/MacroLayout';
 import MesoTab from './components/Meso/MesoTab';
 import MicroTab from './components/Micro/MicroTab';
 import PolicyDashboard from './components/PolicyDashboard';
@@ -15,12 +19,7 @@ import './styles/theme.css';
 
 const PANELS = {
   policy: () => <PolicyDashboard />,
-  macro: () => (
-    <>
-      <MacroTab />
-      <MacroSnapshot />
-    </>
-  ),
+  macro: () => <MacroLayout />,
   meso: () => <MesoTab />,
   micro: () => <MicroTab />,
   global: () => <GlobalTab />,
@@ -33,10 +32,10 @@ function AppInner() {
   const setStoreTheme = useAppStore((s) => s.setTheme);
   const { theme, setTheme } = useTheme();
 
-  // 首次加载：store 主题 → next-themes
+  // store 主题 → next-themes（切换标签时触发）
   useEffect(() => {
     if (storeTheme && storeTheme !== theme) setTheme(storeTheme);
-  }, []);
+  }, [storeTheme]);
 
   // TopTabs 切换主题时同步到 store
   useEffect(() => {
@@ -61,9 +60,11 @@ function AppInner() {
 export default function App() {
   return (
     <ThemeProvider attribute="data-theme" enableSystem={false} storageKey="df-theme">
-      <ProSidebarProvider>
-        <AppInner />
-      </ProSidebarProvider>
+      <QueryClientProvider client={queryClient}>
+        <ProSidebarProvider>
+          <AppInner />
+        </ProSidebarProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }
