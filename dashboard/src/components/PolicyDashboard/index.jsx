@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useQueryMCP } from '../../hooks/useQueryMCP';
 import './PolicyDashboard.css';
 
 // ==================== 基础数据配置 ====================
@@ -199,23 +200,11 @@ const PolicyDashboard = () => {
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
 
-  // ── MCP 实时数据 ──
-  const [realDocs, setRealDocs] = useState([]);
-  const [realStats, setRealStats] = useState('');
-  useEffect(() => {
-    const API = import.meta.env.VITE_MCP_URL || 'http://localhost:8080';
-    async function f() {
-      try {
-        const [sRes, dRes] = await Promise.all([
-          fetch(`${API}/api/tools/call`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'policy_stats',arguments:{}})}).then(r=>r.json()),
-          fetch(`${API}/api/tools/call`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'policy_search',arguments:{limit:15}})}).then(r=>r.json()),
-        ]);
-        if (sRes.ok) setRealStats(sRes.data);
-        if (dRes.ok) setRealDocs((dRes.data||'').split('\n').slice(1).filter(Boolean));
-      } catch(e) {}
-    }
-    f();
-  }, []);
+  // ── MCP 实时数据（React Query 缓存） ──
+  const stats = useQueryMCP('policy_stats');
+  const search = useQueryMCP('policy_search', { limit: 15 });
+  const realStats = stats.data || '';
+  const realDocs = (search.data||'').split('\n').slice(1).filter(Boolean);
 
   // 悬浮卡片状态
   const hoverCardRef = useRef(null);
