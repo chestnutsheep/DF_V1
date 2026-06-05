@@ -24,6 +24,7 @@ function renderChart(div, rows) {
 
   const opt = {
     backgroundColor: 'transparent',
+    fontFamily: "'Microsoft YaHei','PingFang SC',sans-serif",
     tooltip: {
       trigger: 'axis', confine: true,
       backgroundColor: 'rgba(26,47,42,0.92)',
@@ -121,7 +122,7 @@ export default function KitchinTab() {
       {/* 图表 */}
       <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8, marginBottom: 16 }}>
         {rows.length > 0
-          ? <div ref={ref} style={{ width: '70%', height: 460, margin: '0 auto' }} />
+          ? <div ref={ref} style={{ width: '70%', height: 460, marginRight: 'auto' }} />
           : <div style={{ width: '100%', height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
               {isLoading ? '加载中...' : '暂无数据'}
             </div>}
