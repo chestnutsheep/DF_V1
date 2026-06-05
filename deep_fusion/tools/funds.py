@@ -61,7 +61,7 @@ def fund_nav(
 def fund_holdings(
     code: str = Field("000001", description="基金代码，例如: 000001(华夏成长)"),
 ):
-    df = ak_cache(ak.fund_portfolio_hold_em, symbol=code, date=str(datetime.now().year))
+    df = ak_cache(ak.fund_portfolio_hold_em, symbol=code, date=str(datetime.now().year), ttl=43200)
     if df is None or df.empty:
         return format_error_csv("empty dictionary", "akshare", fallback=code)
     return df.to_csv(index=False, float_format="%.2f")
@@ -81,4 +81,52 @@ def fund_ranking(
     if df is None or df.empty:
         return format_error_csv("empty dictionary", "akshare", fallback=fund_type)
     df = df.head(100).copy()
+    return df.to_csv(index=False, float_format="%.2f")
+
+
+@mcp.tool(
+    title="获取基金风险收益分析",
+    description="雪球基金-基金详情-数据分析：返回基金近1/3/5年的年化波动率、夏普比率、最大回撤、较同类风险收益比等指标（缓存24h）",
+)
+def fund_analysis(
+    code: str = Field("000001", description="基金代码，例如: 000001(华夏成长)"),
+):
+    df = ak_cache(ak.fund_individual_analysis_xq, symbol=code, ttl=86400)
+    if df is None or df.empty:
+        return format_error_csv("empty dictionary", "akshare", fallback=code)
+    return df.to_csv(index=False, float_format="%.2f")
+
+
+@mcp.tool(
+    title="获取基金盈利概率",
+    description="雪球基金-基金详情-盈利概率：历史任意时点买入，持有满X时间的盈利概率和平均收益（缓存24h）",
+)
+def fund_profit_probability(
+    code: str = Field("000001", description="基金代码，例如: 000001(华夏成长)"),
+):
+    df = ak_cache(ak.fund_individual_profit_probability_xq, symbol=code, ttl=86400)
+    if df is None or df.empty:
+        return format_error_csv("empty dictionary", "akshare", fallback=code)
+    return df.to_csv(index=False, float_format="%.2f")
+
+
+@mcp.tool(
+    title="获取基金资产配置",
+    description="雪球基金-基金详情-持仓资产比例：返回股票/现金/债券/其他的大类资产仓位占比（缓存72h，季度更新）",
+)
+def fund_asset_allocation(
+    code: str = Field("000001", description="基金代码，例如: 000001(华夏成长)"),
+    date: str = Field("", description="季度日期YYYYMMDD，留空自动取最新季度"),
+):
+    if not date:
+        from datetime import datetime
+        y, m = datetime.now().year, datetime.now().month
+        if m <= 3:    q = f"{y-1}1231"
+        elif m <= 6:  q = f"{y}0331"
+        elif m <= 9:  q = f"{y}0630"
+        else:         q = f"{y}0930"
+        date = q
+    df = ak_cache(ak.fund_individual_detail_hold_xq, symbol=code, date=date, ttl=259200)
+    if df is None or df.empty:
+        return format_error_csv("empty dictionary", "akshare", fallback=code)
     return df.to_csv(index=False, float_format="%.2f")
