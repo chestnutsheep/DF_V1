@@ -119,22 +119,25 @@ export default function KitchinTab() {
         )}
       </div>
 
-      {/* 图表 */}
-      <div style={{ width: '70%', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8, marginBottom: 16 }}>
+      {/* 图表 + 指标卡并排 */}
+      <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', marginBottom: 16 }}>
+        <div style={{ flex: 7, background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8 }}>
         {rows.length > 0
-          ? <div ref={ref} style={{ width: '100%', height: 460 }} />
-          : <div style={{ width: '100%', height: 460, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+          ? <div ref={ref} style={{ width: '100%', height: 530 }} />
+          : <div style={{ width: '100%', height: 530, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
               {isLoading ? '加载中...' : '暂无数据'}
             </div>}
+        </div>
+        <div style={{ flex: 3, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <DataGrid
+            config={KITCHIN_METRICS}
+            latest={latest}
+            prev={rows.length >= 2 ? rows[rows.length - 2] : null}
+            columns={1}
+            gap={8}
+          />
+        </div>
       </div>
-
-      {/* 指标卡网格（数据驱动） */}
-      <DataGrid
-        config={KITCHIN_METRICS}
-        latest={latest}
-        prev={rows.length >= 2 ? rows[rows.length - 2] : null}
-        columns={4}
-      />
     </div>
   );
 }

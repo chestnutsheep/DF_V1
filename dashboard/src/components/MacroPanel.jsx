@@ -100,7 +100,7 @@ export default function MacroPanel() {
           {cards.map((c,i)=>(
             <div key={i} style={{background:'rgba(0,0,0,0.25)',borderRadius:'var(--radius)',padding:'18px 22px',border:'1px solid var(--border-subtle)'}}>
               <div style={{fontSize:13,fontWeight:600,color:'var(--text-secondary)',letterSpacing:1,marginBottom:6}}>{c.label}</div>
-              <div style={{fontSize:24,fontWeight:800,color:c.color,marginBottom:6}}>{c.val}</div>
+              <div style={{fontSize:22,fontWeight:800,color:c.color,marginBottom:6}}>{c.val}</div>
               <div style={{fontSize:14,fontWeight:500,color:'var(--text-primary)'}}>{c.desc}</div>
             </div>
           ))}
