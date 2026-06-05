@@ -108,19 +108,19 @@ def individual_hist(
 ) -> str:
     results = {}
 
-    kline = ak_cache(
-        ak.stock_zh_a_hist, symbol=symbol, period=period,
-        start_date="19700101", end_date="22220101",
-        ttl=3600,
-    )
-    # 优先腾讯源（稳定）
+    # 腾讯源（稳定）→ 东方财富回退
     market = "sh" if symbol.startswith("6") else "sz"
+    kline = None
     try:
-        kline_qq = ak_cache(ak.stock_zh_a_daily, symbol=f"{market}{symbol}", adjust="qfq", ttl=3600)
-        if kline_qq is not None and not kline_qq.empty:
-            kline = kline_qq
+        kline = ak_cache(ak.stock_zh_a_daily, symbol=f"{market}{symbol}", adjust="qfq", ttl=3600)
     except Exception:
         pass
+    if kline is None or kline.empty:
+        kline = ak_cache(
+            ak.stock_zh_a_hist, symbol=symbol, period=period,
+            start_date="19700101", end_date="22220101",
+            ttl=3600,
+        )
     if kline is not None and not kline.empty:
         results["K线数据"] = kline.tail(limit).to_csv(index=False, float_format="%.2f")
 
