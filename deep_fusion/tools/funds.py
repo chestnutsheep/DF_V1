@@ -17,10 +17,26 @@ from ..shared.utils import ak_cache
 def fund_info(
     code: str = Field("000001", description="基金代码，例如: 000001(华夏成长)"),
 ):
+    # 雪球（第一顺位）—— 返回基金基本信息
+    try:
+        df = ak_cache(ak.fund_individual_basic_info_xq, symbol=code)
+        if df is not None and not df.empty:
+            lines = [f"{row['item']}: {row['value']}" for _, row in df.iterrows()]
+            return "\n".join(lines)
+    except Exception:
+        pass
+    # 东方财富ETF（第二顺位）
+    try:
+        df = ak_cache(ak.fund_etf_fund_info_em, symbol=code)
+        if df is not None and not df.empty:
+            return df.to_csv(index=False, float_format="%.4f")
+    except Exception:
+        pass
+    # 东方财富普通（回退）
     df = ak_cache(ak.fund_open_fund_info_em, symbol=code)
     if df is None or df.empty:
         return format_error_csv("empty dictionary", "akshare", fallback=code)
-    return df.to_csv(index=False)
+    return df.to_csv(index=False, float_format="%.4f")
 
 
 @mcp.tool(
