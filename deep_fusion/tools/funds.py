@@ -85,6 +85,46 @@ def fund_ranking(
 
 
 @mcp.tool(
+    title="获取基金债券持仓",
+    description="天天基金网-基金档案-债券持仓：返回基金持有的债券代码、名称、占净值比例、持仓市值等（缓存12h，季度更新）",
+)
+def fund_bond_holdings(
+    code: str = Field("000001", description="基金代码，例如: 000001(华夏成长)"),
+    date: str = Field("", description="年份YYYY，留空自动取当前年"),
+):
+    if not date:
+        from datetime import datetime
+        date = str(datetime.now().year)
+    try:
+        df = ak_cache(ak.fund_portfolio_bond_hold_em, symbol=code, date=date, ttl=43200)
+        if df is not None and not df.empty:
+            return df.to_csv(index=False, float_format="%.2f")
+    except Exception:
+        pass
+    return format_error_csv("empty dictionary", "akshare", fallback=code)
+
+
+@mcp.tool(
+    title="获取基金行业配置",
+    description="天天基金网-基金档案-行业配置：返回基金在各行业的持仓比例、市值等（缓存12h，季度更新）",
+)
+def fund_industry_allocation(
+    code: str = Field("000001", description="基金代码，例如: 000001(华夏成长)"),
+    date: str = Field("", description="年份YYYY，留空自动取当前年"),
+):
+    if not date:
+        from datetime import datetime
+        date = str(datetime.now().year)
+    try:
+        df = ak_cache(ak.fund_portfolio_industry_allocation_em, symbol=code, date=date, ttl=43200)
+        if df is not None and not df.empty:
+            return df.to_csv(index=False, float_format="%.2f")
+    except Exception:
+        pass
+    return format_error_csv("empty dictionary", "akshare", fallback=code)
+
+
+@mcp.tool(
     title="获取基金风险收益分析",
     description="雪球基金-基金详情-数据分析：返回基金近1/3/5年的年化波动率、夏普比率、最大回撤、较同类风险收益比等指标（缓存24h）",
 )
