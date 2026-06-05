@@ -41,7 +41,44 @@ def market_overview(
     板块: str = Field("全部A股", description="板块: 全部A股, 沪A, 深A, 京A, 创业板, 科创板, ST, 新股"),
     limit: int = Field(30, description="返回行数"),
 ) -> str:
-    board_map = {
+    df = _fetch_spot(板块)
+    if df is None or df.empty:
+        return ""
+    return df.head(limit).to_csv(index=False, float_format="%.2f")
+
+
+def _fetch_spot(market: str = "全部A股") -> "pd.DataFrame | None":
+    """市场行情查询：优先新浪 → 东方财富回退。
+    
+    新浪 stock_zh_a_spot() 无参数返回全市场，本地按代码前缀过滤板块。
+    东方财富各板块有独立接口，作为降级回退。
+    """
+    # 本地过滤规则（新浪代码前缀）
+    prefix_map = {
+        "沪A": ("sh", lambda c: c.startswith("sh")),
+        "深A": ("sz", lambda c: c.startswith("sz")),
+        "京A": ("bj", lambda c: c.startswith("bj")),
+        "创业板": ("sz30", lambda c: c[:4] == "sz30" if len(c) >= 4 else False),
+        "科创板": ("sh68", lambda c: c[:4] == "sh68" if len(c) >= 4 else False),
+    }
+
+    # 新浪（优先）
+    try:
+        df = ak_cache(ak.stock_zh_a_spot, ttl=300, ttl2=600)
+        if df is not None and not df.empty:
+            if market == "全部A股" or market == "ST" or market == "新股":
+                return df
+            prefix, fil = prefix_map.get(market, ("", lambda c: True))
+            if prefix:
+                filtered = df[df['代码'].apply(fil)]
+                if len(filtered) > 0:
+                    return filtered
+            return df
+    except Exception:
+        pass
+
+    # 东方财富回退（各板块独立接口）
+    fallback_map = {
         "全部A股": ak.stock_zh_a_spot_em,
         "沪A": ak.stock_sh_a_spot_em,
         "深A": ak.stock_sz_a_spot_em,
@@ -51,11 +88,9 @@ def market_overview(
         "ST": ak.stock_zh_a_st_em,
         "新股": ak.stock_new_a_spot_em,
     }
-    func = board_map.get(板块, ak.stock_zh_a_spot_em)
+    func = fallback_map.get(market, ak.stock_zh_a_spot_em)
     df = ak_cache(func, ttl=300, ttl2=600)
-    if df is None or df.empty:
-        return ""
-    return df.head(limit).to_csv(index=False, float_format="%.2f")
+    return df if df is not None and not df.empty else None
 
 
 @mcp.tool(
