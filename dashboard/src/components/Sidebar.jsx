@@ -79,10 +79,28 @@ function SidebarContent() {
           </div>
 
           <div style={{ margin:'0 16px 12px' }}>
-            <div style={{ fontSize:12,fontWeight:700,letterSpacing:1,color:'var(--text-secondary)',padding:'0 4px 8px' }}>⚖️ 配置倾向</div>
+            <div style={{ fontSize:12,fontWeight:700,letterSpacing:1,color:'var(--text-secondary)',padding:'0 4px 8px' }}>💼 资产配置</div>
             <div style={{ padding:14, background:'rgba(0,0,0,0.2)', borderRadius:'var(--radius)', border:'1px solid var(--border-subtle)' }}>
-              <div style={{ fontSize:16,fontWeight:700 }}>股--% · 债--% · 现--% · 商--%</div>
-              <div style={{ fontSize:12,fontWeight:600,color:'var(--text-secondary)',marginTop:4 }}>🚧 待四周期综合模型</div>
+              {[['权益','35%','#D4A853'],['债券','40%','#5B8FA8'],['基金','15%','#3E6B5C'],['现金','10%','#C49BA5']].map(([l,p,c]) => (
+                <div key={l} style={{ display:'flex',alignItems:'center',gap:8,marginBottom:4 }}>
+                  <span style={{ width:8,height:8,borderRadius:'50%',background:c,display:'inline-block' }} />
+                  <span style={{ fontSize:13,flex:1 }}>{l}</span>
+                  <span style={{ fontSize:14,fontWeight:700,color:'var(--accent-gold)' }}>{p}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ margin:'0 16px 12px' }}>
+            <div style={{ fontSize:12,fontWeight:700,letterSpacing:1,color:'var(--text-secondary)',padding:'0 4px 8px' }}>🔄 基于周期大概方向</div>
+            <div style={{ padding:14, background:'rgba(0,0,0,0.2)', borderRadius:'var(--radius)', border:'1px solid var(--border-subtle)' }}>
+              {[['基钦','主动补库存','↑','#3fb950'],['朱格拉','弱复苏','→','#D4A853'],['库兹涅茨','L型筑底','↓','#f85149'],['康波','萧条期末','↑','#D4A853']].map(([n,p,d,c]) => (
+                <div key={n} style={{ display:'flex',alignItems:'center',gap:8,marginBottom:4 }}>
+                  <span style={{ fontSize:11,color:'var(--text-muted)',width:32 }}>{n}</span>
+                  <span style={{ fontSize:14,color:c,fontWeight:700 }}>{d}</span>
+                  <span style={{ fontSize:12 }}>{p}</span>
+                </div>
+              ))}
             </div>
           </div>
 
