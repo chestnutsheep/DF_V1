@@ -132,10 +132,10 @@ export default function JuglarTab() {
         )}
       </div>
 
-      <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8, marginBottom: 16 }}>
+      <div style={{ width: '70%', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8, marginBottom: 16 }}>
         {rows.length > 0
-          ? <div ref={ref} style={{ width: '70%', height: 460, marginRight: 'auto' }} />
-          : <div style={{ width: '70%', height: 460, marginRight: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+          ? <div ref={ref} style={{ width: '100%', height: 460 }} />
+          : <div style={{ width: '100%', height: 460, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
               {isLoading ? '加载中...' : '暂无数据'}
             </div>}
       </div>

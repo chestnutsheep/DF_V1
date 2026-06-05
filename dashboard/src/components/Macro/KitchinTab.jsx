@@ -29,7 +29,7 @@ function renderChart(div, rows) {
       trigger: 'axis', confine: true,
       backgroundColor: 'rgba(26,47,42,0.92)',
       borderColor: key('--border-subtle'),
-      textStyle: { color: key('--text-primary'), fontSize: 11 },
+      textStyle: { color: key('--text-primary'), fontSize: 13 },
       formatter: (p) => {
         const i = p[0].dataIndex;
         return `<b style="color:${key('--accent-gold')}">${periods[i]}</b><br/>`
@@ -40,14 +40,14 @@ function renderChart(div, rows) {
     legend: {
       data: ['需求(工业增加值%)', '库存(产成品存货%)'],
       bottom: 0,
-      textStyle: { color: key('--text-secondary'), fontSize: 10 },
+      textStyle: { color: key('--text-secondary'), fontSize: 14 },
     },
-    grid: { left: '3%', right: '3%', bottom: '16%', top: '3%', containLabel: true },
+    grid: { left: '3%', right: '3%', bottom: '8%', top: '8%', containLabel: false },
     xAxis: {
       type: 'category', data: periods,
       axisLabel: {
         color: key('--text-primary'),
-        fontSize: 11,
+        fontSize: 13,
         formatter: (v) => {
           const m = v?.substring(4,6);
           if (m === '01') return `{year|${v.substring(0,4)}}`;
@@ -70,10 +70,10 @@ function renderChart(div, rows) {
     dataZoom: [{ type: 'inside', start: Math.max(0, 100 - 6000 / periods.length), end: 100 }],
     series: [
       { name: '需求(工业增加值%)', type: 'line', data: demand, smooth: true, symbol: 'circle', symbolSize: 2,
-        lineStyle: { width: 1.5, color: '#58a6ff' },
+        lineStyle: { width: 2, color: '#58a6ff' },
         areaStyle: { color: '#58a6ff', opacity: 0.05 } },
       { name: '库存(产成品存货%)', type: 'line', data: inventory, smooth: true, symbol: 'circle', symbolSize: 2,
-        lineStyle: { width: 1.5, color: key('--accent-gold') } },
+        lineStyle: { width: 2, color: key('--accent-gold') } },
     ],
   };
 
@@ -107,23 +107,23 @@ export default function KitchinTab() {
           <>
             <span style={{
               background: STAGE_COLORS[stageIdx], padding: '2px 12px', borderRadius: 12,
-              fontSize: 12, fontWeight: 600, color: '#F0E8D8',
+              fontSize: 14, fontWeight: 600, color: '#F0E8D8',
             }}>{latest.stage_name || '未知'}</span>
-            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+            <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
               需求 {latest.demand_yoy ?? '--'}% · 库存 {latest.inventory_yoy ?? '--'}%
             </span>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>截至 {latest.period}</span>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>截至 {latest.period}</span>
           </>
         ) : (
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{isLoading ? '加载中...' : '暂无数据'}</span>
+          <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>{isLoading ? '加载中...' : '暂无数据'}</span>
         )}
       </div>
 
       {/* 图表 */}
-      <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8, marginBottom: 16 }}>
+      <div style={{ width: '70%', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 8, marginBottom: 16 }}>
         {rows.length > 0
-          ? <div ref={ref} style={{ width: '70%', height: 460, marginRight: 'auto' }} />
-          : <div style={{ width: '100%', height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+          ? <div ref={ref} style={{ width: '100%', height: 460 }} />
+          : <div style={{ width: '100%', height: 460, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
               {isLoading ? '加载中...' : '暂无数据'}
             </div>}
       </div>
@@ -133,7 +133,7 @@ export default function KitchinTab() {
         config={KITCHIN_METRICS}
         latest={latest}
         prev={rows.length >= 2 ? rows[rows.length - 2] : null}
-        columns={3}
+        columns={4}
       />
     </div>
   );
