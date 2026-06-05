@@ -5,43 +5,39 @@ import { useAppStore } from '../store';
 import { mcp } from '../services/mcp';
 
 const SUB_NAV = {
-  policy: [
-    { label: '政策统计', icon: '📊' },
-    { label: '文件列表', icon: '📋' },
-    { label: '采集管理', icon: '🔄' },
-  ],
-  macro: [
-    { label: '基钦周期', icon: '📉' },
-    { label: '朱格拉',   icon: '📈' },
-    { label: '库兹涅茨', icon: '🏠' },
-    { label: '康波周期', icon: '🌊' },
-    { label: '宏观覆盖', icon: '📊' },
-  ],
-  meso: [
-    { label: '银行', icon: '🏦' },
-    { label: '钢铁', icon: '🏗️' },
-    { label: '房地产', icon: '🏘️' },
-    { label: '白酒', icon: '🍶' },
-  ],
-  micro: [
-    { key: 'stock',   label: '个股', icon: '📈' },
-    { key: 'fund',    label: '基金', icon: '📦' },
-    { key: 'futures', label: '期货', icon: '⛽' },
-    { key: 'bond',    label: '债券', icon: '📜' },
-    { key: 'option',  label: '期权', icon: '🎯' },
-  ],
-  global: [
-    { label: 'FRED 序列', icon: '🇺🇸' },
-    { label: 'World Bank', icon: '🌍' },
-    { label: '贸易/通胀', icon: '📊' },
-  ],
+  policy: ['stats','list','collect'],
+  macro: ['kitchin','juglar','kuznets','kondratiev','coverage'],
+  meso: ['heatmap','tree','capital'],
+  micro: ['stock','fund','futures','bond','option'],
+  global: ['fred','wb','trade'],
+};
+const SUB_LABELS = {
+  policy: { stats:'📊 政策统计', list:'📋 文件列表', collect:'🔄 采集管理' },
+  macro: { kitchin:'📉 基钦', juglar:'📈 朱格拉', kuznets:'🏠 库兹涅茨', kondratiev:'🌊 康波', coverage:'📊 宏观覆盖' },
+  meso: { heatmap:'🔥 热力图', tree:'🌳 行业树', capital:'💰 资金流' },
+  micro: { stock:'📈 个股', fund:'📦 基金', futures:'⛽ 期货', bond:'📜 债券', option:'🎯 期权' },
+  global: { fred:'🇺🇸 FRED', wb:'🌍 World Bank', trade:'📊 贸易' },
+};
+const SUB_SETTERS = {
+  policy: 'setActivePolicySub', macro: 'setActiveMacroSub', meso: 'setActiveMesoSub',
+  micro: 'setActiveMicroSub', global: 'setActiveGlobalSub',
+};
+const SUB_GETTERS = {
+  policy: 'activePolicySub', macro: 'activeMacroSub', meso: 'activeMesoSub',
+  micro: 'activeMicroSub', global: 'activeGlobalSub',
 };
 
 function SidebarContent() {
   const s = useContext(SidebarContext);
   const collapsed = s?.collapsed ?? false;
   const activeTab = useAppStore((s) => s.activeTab);
+  const activeMacroSub = useAppStore((s) => s.activeMacroSub);
+  const activeMicroSub = useAppStore((s) => s.activeMicroSub);
+  const setActiveMacroSub = useAppStore((s) => s.setActiveMacroSub);
+  const setActiveMesoSub = useAppStore((s) => s.setActiveMesoSub);
   const setActiveMicroSub = useAppStore((s) => s.setActiveMicroSub);
+  const setActivePolicySub = useAppStore((s) => s.setActivePolicySub);
+  const setActiveGlobalSub = useAppStore((s) => s.setActiveGlobalSub);
   const [phase, setPhase] = useState('');
   const [policyCnt, setPolicyCnt] = useState('');
   const [policyBriefs, setPolicyBriefs] = useState([]);
@@ -54,7 +50,10 @@ function SidebarContent() {
     f();
   }, []);
 
-  const items = SUB_NAV[activeTab] || SUB_NAV.macro;
+  const subKeys = SUB_NAV[activeTab] || SUB_NAV.macro;
+  const activeSub = useAppStore((s) => s[SUB_GETTERS[activeTab] || 'activeMacroSub']);
+  const setActiveSub = useAppStore((s) => s[SUB_SETTERS[activeTab] || 'setActiveMacroSub']);
+  const labels = SUB_LABELS[activeTab] || SUB_LABELS.macro;
 
   return (
     <Sidebar
@@ -123,21 +122,18 @@ function SidebarContent() {
         {collapsed ? '📍' : '📍 导航'}
       </div>
       <Menu>
-        {items.map((item, i) => (
+        {subKeys.map((key) => (
           <MenuItem
-            key={i}
-            icon={<span>{item.icon}</span>}
-            onClick={() => {
-              if (item.key && activeTab === 'micro') setActiveMicroSub(item.key);
-            }}
+            key={key}
+            icon={<span>{labels[key]?.split(' ')[0]}</span>}
+            onClick={() => setActiveSub(key)}
             style={{
-              color: 'var(--text-secondary)', fontSize: 13,
-              borderRadius: 8, margin: '2px 8px',
-              backgroundColor: 'transparent',
+              color: activeSub === key ? 'var(--accent-gold)' : 'var(--text-secondary)',
+              fontSize: 13, borderRadius: 8, margin: '2px 8px',
+              backgroundColor: activeSub === key ? 'rgba(212,168,83,0.08)' : 'transparent',
             }}
-            active={false}
           >
-            {collapsed ? '' : item.label}
+            {collapsed ? '' : labels[key]?.split(' ').slice(1).join(' ') || key}
           </MenuItem>
         ))}
       </Menu>
