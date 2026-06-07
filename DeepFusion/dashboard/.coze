@@ -1,0 +1,16 @@
+[project]
+sub_id = "34d2e037"
+name = "deep-fusion-dashboard"
+requires = ["nodejs-24"]
+project_type = "web"
+
+[preview]
+preview_enable = "enabled"
+
+[dev]
+build = ["bash", "scripts/coze-preview-build.sh"]
+run = ["bash", "scripts/coze-preview-run.sh"]
+
+[deploy]
+build = ["pnpm", "run", "build"]
+run = ["pnpm", "run", "preview"]

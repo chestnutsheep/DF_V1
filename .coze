@@ -1,0 +1,17 @@
+[project]
+requires = ["nodejs-24", "python-3.14"]
+project_type = "web"
+
+[preview]
+preview_enable = "enabled"
+
+[dev]
+build = ["bash", "DeepFusion/scripts/coze-preview-build.sh"]
+run = ["bash", "DeepFusion/scripts/coze-preview-run.sh"]
+
+[deploy]
+build = ["bash", "DeepFusion/scripts/coze-deploy-build.sh"]
+run = ["bash", "DeepFusion/scripts/coze-deploy-run.sh"]
+
+[subprojects]
+path = ["DeepFusion/dashboard"]
