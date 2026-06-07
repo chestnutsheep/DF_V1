@@ -52,3 +52,26 @@ _ck = CacheKey.init(f"cycles_data_kondratiev_{method}_v{KONDRATIEV_VER}", ...)
 
 ### 其它周期
 基钦/朱格拉/库兹涅茨沿用各自的缓存策略，暂无需版本锁定。如有重大算法调整，参照康波的做法加版本号。
+
+## 前端项目 (dashboard)
+
+### 环境要求
+- Node.js 18+
+- pnpm 包管理器
+
+### 启动命令
+```bash
+cd dashboard
+pnpm install   # 安装依赖
+pnpm dev        # 开发模式（端口 8080）
+pnpm build      # 生产构建
+```
+
+### 架构说明
+- 前端 Vite 开发服务器监听 8080 端口
+- API 代理 `/api/*` 到后端 5173 端口
+- 后端 `serve.py` 运行在端口 5173
+
+### 注意事项
+- 常量定义必须放在使用它的组件/函数之前（JavaScript `const` 不提升）
+- 需要网络访问的 API（如 NBS 数据）依赖外部网络或代理

@@ -19,6 +19,7 @@ const POLICY_DATA = {
 
 const MONTH_KEYS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 const POLICY_BY_MONTH = ['jan-foreign-reserve','feb-no1-document','mar-government-report','apr-monetary-report','may-central-bank-report',null,'jul-half-year-economy','aug-monetary-report','sep-monetary-report','oct-statistical-yearbook','nov-monetary-report','dec-full-year-economy'];
+const FIVE_YEAR_PLAN = { currentStage: '开局起步期 · 夯实基础' };
 
 function extractKeywords(line) {
   const m = line.match(/\[(.+?)\]/);
@@ -255,8 +256,6 @@ export default function PolicyDashboard() {
     </div>
   );
 }
-
-const FIVE_YEAR_PLAN = { currentStage: '开局起步期 · 夯实基础' };
 
 function renderLongCycleNode(key, label, isMajor) {
   let cls = 'long-cycle-dot' + (isMajor ? ' major' : ' minor');
